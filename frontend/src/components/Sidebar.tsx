@@ -81,11 +81,19 @@ export function Sidebar({
           <span className="local-symbol">
             <Sparkles size={16} />
           </span>
-          <strong>{status?.local === false ? 'Jev classification' : 'Local-first AI'}</strong>
+          <strong>
+            {status?.provider === 'clm'
+              ? 'CLM classification'
+              : status?.provider === 'jev'
+                ? 'Jev classification'
+                : 'Local-first AI'}
+          </strong>
           <p>
-            {status?.local === false
-              ? 'Structured decisions with TypeSafe. Requests use the hosted API.'
-              : 'Your questions. Your machine. No cloud API key needed.'}
+            {status?.provider === 'clm'
+              ? 'Structured decisions on your configured CLM server.'
+              : status?.provider === 'jev'
+                ? 'Structured decisions with TypeSafe. Requests use the hosted API.'
+                : 'Your questions. Your machine. No cloud API key needed.'}
           </p>
           <span className="local-model">
             <span className={`tiny-dot ${status ? 'green' : 'gray'}`} />

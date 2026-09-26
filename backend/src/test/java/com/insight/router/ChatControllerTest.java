@@ -19,6 +19,7 @@ class ChatControllerTest {
                         service, new RouterProperties(0, "ollama", "", "", "", ""), mapper);
         var status = mapper.valueToTree(controller.status());
         assertThat(status.path("providers").get(1).path("available").asBoolean()).isFalse();
+        assertThat(status.path("providers").get(2).path("available").asBoolean()).isFalse();
         var out = new ByteArrayOutputStream();
         controller.chat(new ChatModels.Request("hi", null, List.of(), "jev")).writeTo(out);
         assertThat(out.toString()).contains("Jev is not configured", "AI preferences");
@@ -31,6 +32,36 @@ class ChatControllerTest {
         assertThat(configuredStatus.path("providers").get(1).path("available").asBoolean())
                 .isTrue();
         assertThat(configuredStatus.toString()).doesNotContain("secret-key");
+    }
+
+    @Test
+    void clmStatusAndConfigurationErrorsNeverExposeServerSecrets() throws Exception {
+        var service = mock(ChatService.class);
+        var mapper = new ObjectMapper();
+        var props =
+                new RouterProperties(
+                        0,
+                        "clm",
+                        "",
+                        "",
+                        "",
+                        "jev-secret",
+                        "",
+                        "",
+                        "http://private-clm:8700",
+                        "clm-secret",
+                        "custom-clm");
+        var controller = new ChatController(service, props, mapper);
+        var status = mapper.valueToTree(controller.status());
+        assertThat(status.path("provider").asText()).isEqualTo("clm");
+        assertThat(status.path("model").asText()).isEqualTo("custom-clm");
+        assertThat(status.path("providers").get(2).path("available").asBoolean()).isTrue();
+        assertThat(status.toString()).doesNotContain("clm-secret", "jev-secret", "private-clm");
+        when(service.chat(any(), any()))
+                .thenThrow(new ProviderUnavailableException("CLM is not configured. Add CLM_URL."));
+        var out = new ByteArrayOutputStream();
+        controller.chat(new ChatModels.Request("hi", null, List.of(), "clm")).writeTo(out);
+        assertThat(out.toString()).contains("CLM_URL");
     }
 
     @Test

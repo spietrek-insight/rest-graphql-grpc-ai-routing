@@ -30,7 +30,9 @@ export function ChatPage() {
   const [inspector, setInspector] = useState(() => window.innerWidth >= 970);
   const [retry, setRetry] = useState('');
   const controller = useRef<AbortController | null>(null);
-  const provider = preferences.provider ?? (status?.provider === 'jev' ? 'jev' : 'ollama');
+  const provider =
+    preferences.provider ??
+    (status?.provider === 'jev' || status?.provider === 'clm' ? status.provider : 'ollama');
   const selectedProvider = status?.providers.find((p) => p.id === provider);
   const selectedStatus =
     status && selectedProvider
@@ -51,7 +53,7 @@ export function ChatPage() {
     if (!message || controller.current) return;
     if (state.override === 'AUTO' && selectedProvider?.available === false) {
       state.setError(
-        'The selected AI provider is not configured. Choose Ollama in AI preferences or configure Jev on the backend.',
+        'The selected AI provider is not configured. Choose an available provider in AI preferences or configure the selected provider on the backend.',
       );
       return;
     }

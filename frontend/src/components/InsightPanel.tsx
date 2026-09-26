@@ -74,7 +74,7 @@ export function InsightPanel({
           <div className="route-ai">
             <span>✧</span>
             <div>
-              Intent classifier<small>{active?.source ?? 'Local model · tool selection'}</small>
+              Intent classifier<small>{active?.source ?? 'Selected AI · protocol routing'}</small>
             </div>
           </div>
           <div className="route-branches">

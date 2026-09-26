@@ -1,6 +1,6 @@
 export type Protocol = 'REST' | 'GRAPHQL' | 'GRPC';
 export type Override = Protocol | 'AUTO';
-export type AiProvider = 'ollama' | 'jev';
+export type AiProvider = 'ollama' | 'jev' | 'clm';
 export interface ProviderOption {
   id: AiProvider;
   model: string;

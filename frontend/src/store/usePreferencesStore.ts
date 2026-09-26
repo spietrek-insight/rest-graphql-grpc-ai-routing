@@ -15,7 +15,8 @@ export const usePreferencesStore = create<Preferences>()(
       const provider = (saved as Partial<Preferences> | null)?.provider;
       return {
         ...current,
-        provider: provider === 'ollama' || provider === 'jev' ? provider : null,
+        provider:
+          provider === 'ollama' || provider === 'jev' || provider === 'clm' ? provider : null,
       };
     },
   }),

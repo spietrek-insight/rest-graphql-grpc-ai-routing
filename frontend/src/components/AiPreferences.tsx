@@ -1,7 +1,30 @@
-import { Cloud, Laptop, Settings2 } from 'lucide-react';
+import { Cloud, Laptop, Server, Settings2 } from 'lucide-react';
 import type { AiProvider, ProviderOption } from '@/types';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
+
+const providerDetails = {
+  ollama: {
+    name: 'Ollama',
+    badge: 'LOCAL',
+    description: 'Runs on your machine. No cloud API key needed.',
+    Icon: Laptop,
+  },
+  jev: {
+    name: 'Jev',
+    badge: 'HOSTED',
+    description:
+      'TypeSafe’s structured classification service. Requires internet and a configured API key.',
+    Icon: Cloud,
+  },
+  clm: {
+    name: 'CLM',
+    badge: 'SELF-HOSTED',
+    description:
+      'Structured decisions on your configured CLM server. Can run locally or on your own remote server.',
+    Icon: Server,
+  },
+};
 
 export function AiPreferences({
   provider,
@@ -24,7 +47,7 @@ export function AiPreferences({
           className="preferences-trigger"
         >
           <Settings2 size={16} />
-          <span>{provider === 'jev' ? 'Jev' : 'Ollama'}</span>
+          <span>{providerDetails[provider].name}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="preferences-dialog" closeLabel="Close preferences">
@@ -40,8 +63,9 @@ export function AiPreferences({
         </header>
         <fieldset className="provider-options" disabled={busy}>
           <legend>Routing provider</legend>
-          {(['ollama', 'jev'] as const).map((id) => {
+          {(['ollama', 'jev', 'clm'] as const).map((id) => {
             const option = providers.find((p) => p.id === id);
+            const details = providerDetails[id];
             return (
               <label
                 className={`provider-option ${provider === id ? 'provider-selected' : ''}`}
@@ -56,18 +80,14 @@ export function AiPreferences({
                   onChange={() => onChange(id)}
                 />
                 <span className="provider-option-icon">
-                  {id === 'ollama' ? <Laptop size={20} /> : <Cloud size={20} />}
+                  <details.Icon size={20} />
                 </span>
                 <span className="provider-option-copy">
                   <strong>
-                    {id === 'ollama' ? 'Ollama' : 'Jev'}
-                    <small>{id === 'ollama' ? 'LOCAL' : 'HOSTED'}</small>
+                    {details.name}
+                    <small>{details.badge}</small>
                   </strong>
-                  <span>
-                    {id === 'ollama'
-                      ? 'Runs on your machine. No cloud API key needed.'
-                      : 'TypeSafe’s structured classification service. Requires internet and a configured API key.'}
-                  </span>
+                  <span>{details.description}</span>
                   <code>{option?.model ?? 'Checking configuration…'}</code>
                   {option && !option.available && (
                     <span className="provider-unavailable">Not configured on this server.</span>
@@ -80,8 +100,8 @@ export function AiPreferences({
         <div className="preferences-note">
           <p>
             Only the selected provider receives your question. With Jev, your question and recent
-            conversation are sent to TypeSafe. Both providers choose a protocol; answers come from
-            the same catalog.
+            conversation are sent to TypeSafe. With CLM, they go to your configured server. All
+            providers choose a protocol; answers come from the same catalog.
           </p>
           <p>
             {busy
@@ -93,6 +113,9 @@ export function AiPreferences({
               To enable Jev, configure its API key on the backend once. API keys are never stored in
               this browser.
             </p>
+          )}
+          {providers.some((p) => p.id === 'clm' && !p.available) && (
+            <p>To enable CLM, connect a running CLM server in the backend configuration.</p>
           )}
         </div>
       </DialogContent>

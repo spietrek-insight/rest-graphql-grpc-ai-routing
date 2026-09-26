@@ -12,6 +12,9 @@ it('switches providers and explains the hosted data flow', async () => {
   expect(screen.getByRole('radio', { name: /Ollama/ })).toBeChecked();
   await user.click(screen.getByRole('radio', { name: /Jev/ }));
   expect(change).toHaveBeenCalledWith('jev');
+  await user.click(screen.getByRole('radio', { name: /CLM/ }));
+  expect(change).toHaveBeenCalledWith('clm');
+  expect(screen.getByText('SELF-HOSTED')).toBeInTheDocument();
   expect(
     screen.getByText(/question and recent conversation are sent to TypeSafe/),
   ).toBeInTheDocument();
@@ -27,8 +30,10 @@ it('disables unavailable providers and freezes switching during a request', asyn
   const { rerender } = render(<AiPreferences {...props} />);
   await user.click(screen.getByRole('button', { name: 'AI preferences' }));
   expect(screen.getByRole('radio', { name: /Jev/ })).toBeDisabled();
+  expect(screen.getByRole('radio', { name: /CLM/ })).toBeDisabled();
   expect(screen.getByText(/configure its API key on the backend once/)).toBeInTheDocument();
-  rerender(<AiPreferences {...props} busy />);
+  rerender(<AiPreferences {...props} providers={providers} busy />);
+  expect(screen.getByRole('radio', { name: /CLM/ })).toBeDisabled();
   expect(screen.getByRole('radio', { name: /Ollama/ })).toBeDisabled();
   expect(screen.getByText(/Wait for the current response/)).toBeInTheDocument();
 });

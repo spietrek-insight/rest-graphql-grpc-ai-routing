@@ -50,9 +50,47 @@ TYPESAFE_API_KEY=your-key
 
 Put these in a root `.env` file for Compose, then run `docker compose up -d --force-recreate backend frontend` once to apply the credential. No image rebuild is needed for environment changes. For native development, export the variables in the backend shell and restart it; Spring does not automatically load the root `.env`. The key remains server-side. Jev uses a hosted endpoint and requires internet; the reviewed public docs do not document downloadable weights or a local runtime. It is optional, and the Ollama default has no cloud dependency. Documentation: https://docs.typesafe.ai/api and https://docs.ollama.com/capabilities/tool-calling.
 
-Open **AI preferences** in the top bar to switch between Ollama and Jev. Switching is immediate for future questions and does not restart or redeploy anything. The browser remembers the selected provider using a dedicated Zustand preferences store; New conversation does not reset it. Only the provider choice is persisted, never conversation history or API keys. Switching is disabled while a response is running. Jev is disabled until a server-side key is configured; this checks configuration, not credential validity or provider reachability. Selecting Jev sends the question and recent conversation to TypeSafe. Existing responses retain their recorded provider, and failures never silently fall back to the other provider.
+Open **AI preferences** in the top bar to switch between Ollama, Jev, and CLM. Switching is immediate for future questions and does not restart or redeploy anything. The browser remembers the selected provider using a dedicated Zustand preferences store; New conversation does not reset it. Only the provider choice is persisted, never conversation history or API keys. Switching is disabled while a response is running. Jev is disabled until a server-side key is configured; this checks configuration, not credential validity or provider reachability. Selecting Jev sends the question and recent conversation to TypeSafe. Existing responses retain their recorded provider, and failures never silently fall back to another provider.
 
-`AI_PROVIDER` sets the initial choice for a browser without a saved preference. `OLLAMA_MODEL` and `JEV_MODEL` configure independent models; defaults are `qwen3:4b-instruct-2507-q4_K_M` and `jev-latest`. Legacy `AI_MODEL` applies only to the server's default provider, unless that provider's dedicated model setting is supplied. API clients may include `provider: "ollama"` or `provider: "jev"` in `/api/chat`; omission preserves the server default. Presenter protocol overrides bypass both AI providers.
+`AI_PROVIDER` sets the initial choice for a browser without a saved preference. `OLLAMA_MODEL`, `JEV_MODEL`, and `CLM_MODEL` configure independent models; defaults are `qwen3:4b-instruct-2507-q4_K_M`, `jev-latest`, and `clm-latest`. Legacy `AI_MODEL` applies only to the server's default provider, unless that provider's dedicated model setting is supplied. API clients may include `provider: "ollama"`, `provider: "jev"`, or `provider: "clm"` in `/api/chat`; omission preserves the server default. Presenter protocol overrides bypass all AI providers.
+
+## Optional self-hosted CLM classification
+
+CLM uses the same two Choice questions as Jev to select a protocol and catalog target. Its confidence and probability distributions appear in the inspector; answers still come from actual catalog responses. It does not generate prose. The frontend labels CLM **SELF-HOSTED** because its configured server may be local or remote.
+
+Run a CLM server and its required Qwen3-8B encoder separately, then configure the backend:
+
+```dotenv
+CLM_URL=http://host.docker.internal:8700
+CLM_MODEL=clm-latest
+# CLM_API_KEY=your-server-key
+```
+
+The URL above reaches a host service from Docker Desktop or Rancher Desktop. For a native backend and CLM on the same machine, use `http://127.0.0.1:8700`. Supply the base URL without `/v1/systemone`. The optional key is required only if your CLM server enforces authentication; it stays on the backend and is independent of the TypeSafe key. Use an appropriately secured connection for a remote server.
+
+After changing `.env`, run `docker compose up -d --force-recreate backend frontend` to apply configuration (use `--build` when also updating application code). For native development, export these variables before starting the backend. Then select **CLM** in **AI preferences**. Set `AI_PROVIDER=clm` only if you want it to be the initial choice for browsers without a saved preference.
+
+CLM is disabled until `CLM_URL` is configured. This is a configuration check, not a health check. Questions and bounded recent conversation are sent to that server; unreachable servers or invalid decisions produce errors without fallback. No server URL or key is exposed through `/api/status`. Its legacy `local` flag remains true only for Ollama; CLM's location is not inferred from its URL.
+
+The upstream reference deployment is:
+
+```sh
+pip install contrastive-lm
+# Run the encoder and API as separate services/terminals:
+vllm serve Qwen/Qwen3-8B --served-model-name qwen3-8b --runner pooling --max-model-len 2048 --port 8090
+clm-serve
+```
+
+This requires a compatible inference environment and model downloads. The released CLM heads require **Qwen3-8B last-token-pooled embeddings**; the existing Ollama Qwen3-4B model is not interchangeable. Compose does not install or start the CLM encoder/API. Apple Silicon inference compatibility and performance have not been validated for this project. See the [CLM deployment instructions](https://github.com/Contrastive-LM/CLM#quickstart) and [model requirements](https://huggingface.co/Contrastive-LM/CLM-v0.1-8B#limitations).
+
+Once a real server is running, exercise it without changing the backend default:
+
+```sh
+AI_PROVIDER=clm node scripts/smoke.mjs --ai
+AI_PROVIDER=clm node scripts/benchmark.mjs
+```
+
+These verify live routes and record warmup, response timing, and contextual follow-ups. Mocked adapter tests do not establish model accuracy or latency.
 
 ## Try it
 
@@ -60,7 +98,7 @@ Open **AI preferences** in the top bar to switch between Ollama and Jev. Switchi
 - **GraphQL:** “Which starships appear in A New Hope, and who produced it?”
 - **gRPC:** “Track the Millennium Falcon.”
 
-Auto uses genuine model tool calling with Ollama or typed decisions with Jev. There is no hidden keyword-based automatic fallback. If a provider is unavailable or returns invalid output, the UI displays an error; choose a presenter override to continue. Overrides bypass the model and use a deliberately simple name matcher for arguments. They apply to one question and then reset to Auto.
+Auto uses genuine model tool calling with Ollama or typed decisions with Jev or CLM. There is no hidden keyword-based automatic fallback. If a provider is unavailable or returns invalid output, the UI displays an error; choose a presenter override to continue. Overrides bypass the model and use a deliberately simple name matcher for arguments. They apply to one question and then reset to Auto.
 
 The tracker sends three requests and receives three catalog snapshots over a real bidirectional HTTP/2 Protobuf stream. Snapshots are bridged to the browser incrementally over newline-delimited JSON. Timestamps are real; vessel telemetry is not fabricated. The inspector displays decoded Protobuf JSON, and its response size counts serialized Protobuf message bytes (not framing or headers). HTTP sizes count response body bytes. The inspector separately shows routing time, protocol execution time and total server time. Protocol timing excludes model classification, and includes deliberate 350 ms pacing between stream requests; it is **not a protocol benchmark**.
 

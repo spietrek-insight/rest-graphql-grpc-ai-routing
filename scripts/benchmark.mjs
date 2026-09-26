@@ -1,5 +1,7 @@
 // Run against a local backend with its model available. No presenter overrides or response cache.
 const base = process.env.API_URL ?? 'http://localhost:8080';
+const provider = process.env.AI_PROVIDER;
+if (provider && !['ollama', 'jev', 'clm'].includes(provider)) throw new Error('AI_PROVIDER must be ollama, jev, or clm');
 const rounds = Number(process.env.BENCHMARK_ROUNDS ?? 3);
 if (!Number.isInteger(rounds) || rounds < 1 || rounds > 100) throw new Error('BENCHMARK_ROUNDS must be 1–100');
 const cases = [
@@ -12,7 +14,7 @@ async function measure([message, protocol, target], history = []) {
   const response = await fetch(`${base}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, history }),
+    body: JSON.stringify({ message, history, provider }),
     signal: AbortSignal.timeout(150_000),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -49,4 +51,4 @@ for (let round = 1; round <= rounds; round++) {
     ],
   ) });
 }
-console.log(JSON.stringify({ recordedAt: new Date().toISOString(), status, warmup, summary, samples, followups }, null, 2));
+console.log(JSON.stringify({ recordedAt: new Date().toISOString(), status, selectedProvider: provider ?? status.provider, warmup, summary, samples, followups }, null, 2));

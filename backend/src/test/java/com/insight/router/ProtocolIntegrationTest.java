@@ -117,6 +117,16 @@ class ProtocolIntegrationTest {
     }
 
     @Test
+    void clmIsAcceptedByTheHttpApiAndPresenterOverridesBypassItsConfiguration() throws Exception {
+        var response =
+                post(
+                        "/api/chat",
+                        "{\"message\":\"falcon\",\"override\":\"REST\",\"history\":[],\"provider\":\"clm\"}");
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("Presenter override", "Millennium Falcon");
+    }
+
+    @Test
     void ndjsonEndpointStreamsDecisionAndResult() throws Exception {
         var response =
                 post("/api/chat", "{\"message\":\"falcon\",\"override\":\"REST\",\"history\":[]}");

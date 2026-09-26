@@ -52,7 +52,16 @@ public class ChatController {
                                 "local",
                                 false,
                                 "available",
-                                !properties.typesafeKey().isBlank())));
+                                !properties.typesafeKey().isBlank()),
+                        Map.of(
+                                "id",
+                                "clm",
+                                "model",
+                                properties.modelFor("clm"),
+                                "local",
+                                false,
+                                "available",
+                                !properties.clmUrl().isBlank())));
     }
 
     @PostMapping(value = "/chat", produces = "application/x-ndjson")

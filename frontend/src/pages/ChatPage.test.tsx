@@ -94,40 +94,65 @@ it('ignores empty submissions, prevents duplicate requests and aborts on unmount
   unmount();
   expect(vi.mocked(sendChat).mock.calls[0][3].aborted).toBe(true);
 });
-it('sends the preference per question and keeps it across new conversations', async () => {
-  const user = userEvent.setup();
-  vi.mocked(sendChat).mockImplementation(async (_m, _o, _h, _s, event) => {
-    event({ type: 'result', data: { answer: 'A catalog answer.', insight } });
-  });
-  render(<ChatPage />);
-  await screen.findByText('Backend connected');
-  await user.click(screen.getByRole('button', { name: 'AI preferences' }));
-  await user.click(screen.getByRole('radio', { name: /Jev/ }));
-  await user.click(screen.getByRole('button', { name: 'Close preferences' }));
-  await user.click(screen.getByText('Meet the Millennium Falcon'));
-  await screen.findByText('A catalog answer.');
-  expect(vi.mocked(sendChat).mock.calls[0][5]).toBe('jev');
-  await user.click(screen.getByText('New conversation'));
-  expect(usePreferencesStore.getState().provider).toBe('jev');
-  await user.click(screen.getByRole('button', { name: 'AI preferences' }));
-  await user.click(screen.getByRole('radio', { name: /Ollama/ }));
-  await user.keyboard('{Escape}');
-  await user.click(screen.getByText('Meet the Millennium Falcon'));
-  expect(vi.mocked(sendChat).mock.calls[1][5]).toBe('ollama');
-});
-it('blocks a remembered unavailable provider without silently switching or sending a request', async () => {
-  usePreferencesStore.getState().setProvider('jev');
+it.each(['jev', 'clm'] as const)(
+  'sends %s per question and keeps it across new conversations',
+  async (provider) => {
+    const user = userEvent.setup();
+    vi.mocked(sendChat).mockImplementation(async (_m, _o, _h, _s, event) => {
+      event({ type: 'result', data: { answer: 'A catalog answer.', insight } });
+    });
+    render(<ChatPage />);
+    await screen.findByText('Backend connected');
+    await user.click(screen.getByRole('button', { name: 'AI preferences' }));
+    await user.click(screen.getByRole('radio', { name: new RegExp(provider, 'i') }));
+    await user.click(screen.getByRole('button', { name: 'Close preferences' }));
+    await user.click(screen.getByText('Meet the Millennium Falcon'));
+    await screen.findByText('A catalog answer.');
+    expect(vi.mocked(sendChat).mock.calls[0][5]).toBe(provider);
+    await user.click(screen.getByText('New conversation'));
+    expect(usePreferencesStore.getState().provider).toBe(provider);
+    await user.click(screen.getByRole('button', { name: 'AI preferences' }));
+    await user.click(screen.getByRole('radio', { name: /Ollama/ }));
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByText('Meet the Millennium Falcon'));
+    expect(vi.mocked(sendChat).mock.calls[1][5]).toBe('ollama');
+  },
+);
+it.each(['jev', 'clm'] as const)(
+  'blocks unavailable %s without switching providers',
+  async (provider) => {
+    usePreferencesStore.getState().setProvider(provider);
+    vi.mocked(getStatus).mockResolvedValue({
+      service: 'ready',
+      provider: 'ollama',
+      model: 'local',
+      local: true,
+      providers: providers.map((p) => ({ ...p, available: p.id === 'ollama' })),
+    });
+    render(<ChatPage />);
+    await screen.findByText('Backend connected');
+    await userEvent.click(screen.getByText('Meet the Millennium Falcon'));
+    expect(screen.getByRole('alert')).toHaveTextContent('selected AI provider is not configured');
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(usePreferencesStore.getState().provider).toBe(provider);
+  },
+);
+
+it('honors CLM as the server default and displays its own description', async () => {
   vi.mocked(getStatus).mockResolvedValue({
     service: 'ready',
-    provider: 'ollama',
-    model: 'local',
-    local: true,
-    providers: providers.map((p) => ({ ...p, available: p.id === 'ollama' })),
+    provider: 'clm',
+    model: 'clm-latest',
+    local: false,
+    providers,
   });
+  vi.mocked(sendChat).mockResolvedValue();
   render(<ChatPage />);
-  await screen.findByText('Backend connected');
+  await screen.findByText('CLM classification');
+  expect(
+    screen.getByText('Structured decisions on your configured CLM server.'),
+  ).toBeInTheDocument();
+  expect(screen.queryByText('Jev classification')).not.toBeInTheDocument();
   await userEvent.click(screen.getByText('Meet the Millennium Falcon'));
-  expect(screen.getByRole('alert')).toHaveTextContent('selected AI provider is not configured');
-  expect(sendChat).not.toHaveBeenCalled();
-  expect(usePreferencesStore.getState().provider).toBe('jev');
+  expect(vi.mocked(sendChat).mock.calls[0][5]).toBe('clm');
 });

@@ -40,8 +40,10 @@ public class ModelClassifier implements IntentClassifier {
         return switch (request.provider() == null ? properties.provider() : request.provider()) {
             case "ollama" -> ollama(request);
             case "jev" -> jev(request);
+            case "clm" -> clm(request);
             default ->
-                    throw new IllegalStateException("Unknown AI_PROVIDER. Choose ollama or jev.");
+                    throw new IllegalStateException(
+                            "Unknown AI_PROVIDER. Choose ollama, jev or clm.");
         };
     }
 
@@ -150,6 +152,39 @@ public class ModelClassifier implements IntentClassifier {
 
     private Decision jev(Request request) {
         if (properties.typesafeKey().isBlank()) throw new ProviderUnavailableException();
+        return typedDecision(
+                "jev",
+                "Jev",
+                properties.typesafeUrl(),
+                properties.typesafeKey(),
+                Map.of("message", request.message(), "history", request.history()));
+    }
+
+    private Decision clm(Request request) {
+        if (properties.clmUrl().isBlank()) {
+            throw new ProviderUnavailableException(
+                    "CLM is not configured. Add CLM_URL to the backend configuration, or select another provider in AI preferences.");
+        }
+        // Keep the latest question after bounded context for CLM's last-token encoder.
+        var history = request.history();
+        var state = new StringBuilder("Recent conversation (context only):\n");
+        for (var turn :
+                history.subList(Math.max(0, history.size() - HISTORY_MESSAGES), history.size())) {
+            state.append(turn.role())
+                    .append(": ")
+                    .append(
+                            turn.content(),
+                            0,
+                            Math.min(turn.content().length(), HISTORY_CHARACTERS))
+                    .append('\n');
+        }
+        state.append("\nLatest question: ").append(request.message());
+        return typedDecision(
+                "clm", "CLM", properties.clmUrl(), properties.clmKey(), state.toString());
+    }
+
+    private Decision typedDecision(
+            String provider, String label, String url, String key, Object state) {
         var criteria = new LinkedHashMap<String, String>();
         for (var protocol : Protocol.values()) criteria.put(protocol.name(), protocol.rationale());
         var questions =
@@ -174,24 +209,24 @@ public class ModelClassifier implements IntentClassifier {
                 mapper.valueToTree(
                         Map.of(
                                 "model",
-                                properties.modelFor("jev"),
+                                properties.modelFor(provider),
                                 "state",
-                                Map.of("message", request.message(), "history", request.history()),
+                                state,
                                 "questions",
                                 questions));
         var result =
                 http.send(
                                 "POST",
-                                properties.typesafeUrl() + "/v1/systemone",
+                                url + "/v1/systemone",
                                 body,
-                                Map.of("Authorization", "Bearer " + properties.typesafeKey()))
+                                key.isBlank() ? Map.of() : Map.of("Authorization", "Bearer " + key))
                         .body();
         var answers = result.path("answers");
         var protocol = Protocol.valueOf(answers.path("protocol").path("choice").asText());
         return new Decision(
                 protocol,
                 answers.path("target").path("choice").asText(),
-                "Jev · " + result.path("model").asText(),
+                label + " · " + result.path("model").asText(properties.modelFor(provider)),
                 protocol.rationale(),
                 answers);
     }

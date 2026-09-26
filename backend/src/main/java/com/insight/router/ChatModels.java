@@ -16,7 +16,7 @@ public final class ChatModels {
             @NotBlank @Size(max = 2000) String message,
             Protocol override,
             @NotNull @Size(max = 20) List<@NotNull @Valid Turn> history,
-            @Pattern(regexp = "ollama|jev") String provider) {
+            @Pattern(regexp = "ollama|jev|clm") String provider) {
         public Request(String message, Protocol override, List<Turn> history) {
             this(message, override, history, null);
         }

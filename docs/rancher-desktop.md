@@ -67,10 +67,16 @@ If the browser says the backend is unavailable, check Rancher Desktop is running
 
 ## Switch AI providers during a demo
 
-Use **AI preferences** in the top bar. Switching between configured Ollama and Jev applies to the next question, with no redeployment. Your browser remembers the choice. Jev is an optional hosted service; only the selected provider is called.
+Use **AI preferences** in the top bar. Switching between configured Ollama, Jev, and CLM applies to the next question, with no redeployment. Your browser remembers the choice. Jev is an optional hosted service; only the selected provider is called.
 
 To enable Jev initially, add `TYPESAFE_API_KEY=your-key` to the root `.env` and run `docker --context rancher-desktop compose up -d --force-recreate backend frontend` once, then refresh the page. This applies server configuration; subsequent preference changes need no container restart. Keep the key out of source control. The default hosted model is `jev-latest`, configurable through `JEV_MODEL` independently of `OLLAMA_MODEL`.
 
 ## Verified deployment
 
 On 2026-09-26, all three automatic protocol routes and a contextual follow-up passed through port 3000. With 2 VM CPU cores and about 6 GB RAM, one warm sample per scenario took 1.46 s (REST), 2.82 s (GraphQL), 3.64 s (gRPC, including three updates), and 5.10 s (follow-up). Initial model/prompt loading took 34.24 s. See [recorded measurements](rancher-performance.json). These CPU results are separate from the native GPU benchmarks.
+
+### Enable CLM
+
+Start a compatible CLM server and Qwen3-8B encoder separately. Set `CLM_URL=http://host.docker.internal:8700` in the root `.env` if the API runs on the Mac host, or use your remote CLM base URL. Optionally set `CLM_MODEL` (default `clm-latest`) and `CLM_API_KEY` if the server requires authentication. Recreate the backend with `docker --context rancher-desktop compose up -d --force-recreate backend frontend`, then refresh and select **CLM** in **AI preferences**. Build updated application images first when upgrading from a version without CLM support.
+
+CLM stays disabled until its URL is configured. The app does not start a CLM model server, and this integration does not establish Apple Silicon encoder compatibility. See [CLM setup and validation](../README.md#optional-self-hosted-clm-classification).

@@ -60,9 +60,9 @@ describe('chat transport', () => {
         response([JSON.stringify({ type: 'result', data: { answer: 'ok', insight } }) + '\n']),
       );
     vi.stubGlobal('fetch', fetchMock);
-    await sendChat('hi', 'REST', [], new AbortController().signal, vi.fn(), 'jev');
+    await sendChat('hi', 'REST', [], new AbortController().signal, vi.fn(), 'clm');
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).override).toBe('REST');
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body).provider).toBe('jev');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).provider).toBe('clm');
   });
   it.each([{ ok: false }, { ok: true, body: null }])(
     'rejects unavailable transport',
