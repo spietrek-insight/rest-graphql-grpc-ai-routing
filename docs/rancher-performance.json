@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-09-26T19:33:40.243Z",
+  "status": {
+    "local": true,
+    "model": "qwen3:4b-instruct-2507-q4_K_M",
+    "provider": "ollama",
+    "service": "ready"
+  },
+  "warmup": {
+    "protocol": "REST",
+    "target": "ship:5",
+    "wallMs": 34239,
+    "routingMs": 34222,
+    "totalMs": 34229,
+    "protocolMs": 6
+  },
+  "summary": {
+    "REST": {
+      "medianMs": 1456,
+      "maxMs": 1456,
+      "samples": 1
+    },
+    "GRAPHQL": {
+      "medianMs": 2823,
+      "maxMs": 2823,
+      "samples": 1
+    },
+    "GRPC": {
+      "medianMs": 3642,
+      "maxMs": 3642,
+      "samples": 1
+    }
+  },
+  "samples": [
+    {
+      "round": 1,
+      "protocol": "REST",
+      "target": "ship:5",
+      "wallMs": 1456,
+      "routingMs": 1443,
+      "totalMs": 1451,
+      "protocolMs": 6
+    },
+    {
+      "round": 1,
+      "protocol": "GRAPHQL",
+      "target": "film:1",
+      "wallMs": 2823,
+      "routingMs": 2804,
+      "totalMs": 2817,
+      "protocolMs": 12
+    },
+    {
+      "round": 1,
+      "protocol": "GRPC",
+      "target": "ship:5",
+      "wallMs": 3642,
+      "routingMs": 2898,
+      "totalMs": 3633,
+      "protocolMs": 733
+    }
+  ],
+  "followups": [
+    {
+      "round": 1,
+      "protocol": "GRAPHQL",
+      "target": "ship:5",
+      "wallMs": 5097,
+      "routingMs": 5075,
+      "totalMs": 5085,
+      "protocolMs": 9
+    }
+  ]
+}

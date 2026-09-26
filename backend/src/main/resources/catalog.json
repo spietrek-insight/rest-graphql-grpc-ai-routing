@@ -1,0 +1,608 @@
+{
+  "starships": [
+    {
+      "id": "1",
+      "name": "CR90 corvette",
+      "maxSpeed": 950,
+      "length": 150.0,
+      "films": [
+        {
+          "id": "1",
+          "title": "A New Hope",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Return of the Jedi",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "title": "Revenge of the Sith",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Star Destroyer",
+      "maxSpeed": 975,
+      "length": 1600.0,
+      "films": [
+        {
+          "id": "1",
+          "title": "A New Hope",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "The Empire Strikes Back",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Return of the Jedi",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Sentinel-class landing craft",
+      "maxSpeed": 1000,
+      "length": 38.0,
+      "films": [
+        {
+          "id": "1",
+          "title": "A New Hope",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Death Star",
+      "maxSpeed": 0,
+      "length": 120000.0,
+      "films": [
+        {
+          "id": "1",
+          "title": "A New Hope",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Millennium Falcon",
+      "maxSpeed": 1050,
+      "length": 34.37,
+      "films": [
+        {
+          "id": "1",
+          "title": "A New Hope",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "The Empire Strikes Back",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Return of the Jedi",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Y-wing",
+      "maxSpeed": 0,
+      "length": 14.0,
+      "films": [
+        {
+          "id": "2",
+          "title": "The Empire Strikes Back",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Return of the Jedi",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "name": "X-wing",
+      "maxSpeed": 1050,
+      "length": 12.5,
+      "films": [
+        {
+          "id": "2",
+          "title": "The Empire Strikes Back",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Return of the Jedi",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "name": "Imperial shuttle",
+      "maxSpeed": 850,
+      "length": 20.0,
+      "films": [
+        {
+          "id": "2",
+          "title": "The Empire Strikes Back",
+          "producers": [
+            {
+              "id": "1",
+              "name": "Gary Kurtz"
+            },
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "name": "Republic Cruiser",
+      "maxSpeed": 900,
+      "length": 115.0,
+      "films": [
+        {
+          "id": "4",
+          "title": "The Phantom Menace",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "name": "Droid control ship",
+      "maxSpeed": 0,
+      "length": 3170.0,
+      "films": [
+        {
+          "id": "4",
+          "title": "The Phantom Menace",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "title": "Attack of the Clones",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "title": "Revenge of the Sith",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "name": "Naboo fighter",
+      "maxSpeed": 1100,
+      "length": 11.0,
+      "films": [
+        {
+          "id": "4",
+          "title": "The Phantom Menace",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "title": "Attack of the Clones",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "name": "Naboo Royal Starship",
+      "maxSpeed": 920,
+      "length": 76.0,
+      "films": [
+        {
+          "id": "4",
+          "title": "The Phantom Menace",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "name": "Scimitar",
+      "maxSpeed": 1180,
+      "length": 26.5,
+      "films": [
+        {
+          "id": "4",
+          "title": "The Phantom Menace",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "name": "Slave 1",
+      "maxSpeed": 1000,
+      "length": 21.5,
+      "films": [
+        {
+          "id": "5",
+          "title": "Attack of the Clones",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "name": "J-type diplomatic barge",
+      "maxSpeed": 2000,
+      "length": 39.0,
+      "films": [
+        {
+          "id": "5",
+          "title": "Attack of the Clones",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "name": "AA-9 Coruscant freighter",
+      "maxSpeed": 0,
+      "length": 390.0,
+      "films": [
+        {
+          "id": "5",
+          "title": "Attack of the Clones",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "name": "Jedi starfighter",
+      "maxSpeed": 1150,
+      "length": 8.0,
+      "films": [
+        {
+          "id": "6",
+          "title": "Revenge of the Sith",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "name": "Trade Federation cruiser",
+      "maxSpeed": 1050,
+      "length": 1088.0,
+      "films": [
+        {
+          "id": "6",
+          "title": "Revenge of the Sith",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "name": "Theta-class T-2c shuttle",
+      "maxSpeed": 2000,
+      "length": 18.5,
+      "films": [
+        {
+          "id": "6",
+          "title": "Revenge of the Sith",
+          "producers": [
+            {
+              "id": "2",
+              "name": "Rick McCallum"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "films": [
+    {
+      "id": "1",
+      "title": "A New Hope",
+      "producers": [
+        {
+          "id": "1",
+          "name": "Gary Kurtz"
+        },
+        {
+          "id": "2",
+          "name": "Rick McCallum"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "The Empire Strikes Back",
+      "producers": [
+        {
+          "id": "1",
+          "name": "Gary Kurtz"
+        },
+        {
+          "id": "2",
+          "name": "Rick McCallum"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Return of the Jedi",
+      "producers": [
+        {
+          "id": "1",
+          "name": "Gary Kurtz"
+        },
+        {
+          "id": "2",
+          "name": "Rick McCallum"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "The Phantom Menace",
+      "producers": [
+        {
+          "id": "2",
+          "name": "Rick McCallum"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Attack of the Clones",
+      "producers": [
+        {
+          "id": "2",
+          "name": "Rick McCallum"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Revenge of the Sith",
+      "producers": [
+        {
+          "id": "2",
+          "name": "Rick McCallum"
+        }
+      ]
+    }
+  ],
+  "producers": [
+    {
+      "id": "1",
+      "name": "Gary Kurtz"
+    },
+    {
+      "id": "2",
+      "name": "Rick McCallum"
+    },
+    {
+      "id": "3",
+      "name": "Howard G. Kazanjian"
+    },
+    {
+      "id": "4",
+      "name": "George Lucas"
+    }
+  ]
+}

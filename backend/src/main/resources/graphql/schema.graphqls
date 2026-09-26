@@ -1,0 +1,4 @@
+type Query { starships(target: String = "all"): [Starship!]! films: [Film!]! producers: [Producer!]! }
+type Starship { id: ID! name: String! maxSpeed: Int! length: Float! films: [Film!]! }
+type Film { id: ID! title: String! producers: [Producer!]! }
+type Producer { id: ID! name: String! }

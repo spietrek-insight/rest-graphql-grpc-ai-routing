@@ -1,0 +1,21 @@
+# Validation record — 2026-09-26
+
+- Frontend: 29 Vitest tests passed. Line coverage 97.79%; branch coverage 95.89%; function coverage 94.93%. Source thresholds are enforced at 80%.
+- Backend: 25 JUnit tests passed, including real REST, GraphQL and bidirectional gRPC integration tests, bounded classification context and startup warmup. JaCoCo line coverage 96.26%; branch coverage 96.36%. Source thresholds are enforced at 80%.
+- Response dialog: browser verified a full GraphQL payload in the scrollable modal. Unit tests cover both entry points, exact response content, copying, clipboard failure, Escape dismissal and focus restoration.
+- TypeScript production build, ESLint, Prettier and Spotless checks passed.
+- npm production dependency audit: zero reported vulnerabilities at verification time.
+- Browser checks: REST resource lookup, GraphQL film relationships, three gRPC snapshots with decoded payloads, desktop three-column layout at 1440 px, and mobile layout/navigation at 390 px.
+- Native application smoke test: all three presenter override routes passed. `node scripts/smoke.mjs` reproduces this check against a running backend.
+- Live local AI check: Ollama 0.34.4 with `qwen3:4b-instruct-2507-q4_K_M` selected REST/ship:5, GRAPHQL/film:1 and GRPC/ship:5 correctly in all nine benchmark requests. Every gRPC case delivered three snapshots. Run `node scripts/smoke.mjs --ai` for a single pass or `node scripts/benchmark.mjs` for timed repetitions. This is a guided-prompt check, not a general accuracy benchmark.
+- Warm complete-response medians: REST 1,105 ms, GraphQL 1,257 ms, gRPC 1,858 ms; maximum across all nine samples 1,938 ms. Three additional contextual relationship questions all correctly selected GRAPHQL/ship:5, taking 1,023–1,524 ms. Native Ollama on this Apple Silicon Mac, sequential requests, no presenter overrides or application response caching. Raw results: [performance.json](performance.json). First model loading was separately observed to take about 19 seconds; startup warmup moves that work ahead of normal interaction when the model is already downloaded.
+- Rancher Desktop deployment verified on 2026-09-26 using dockerd (moby), Linux ARM64, 2 vCPUs and about 6 GB VM RAM. Both Docker image builds passed their checks (22 frontend tests and 21 backend tests); backend health passed. All three presenter routes and all three automatic routes plus a contextual follow-up passed through the frontend at port 3000. The model download job exited successfully and model data persists in the `dev2next_model-data` volume.
+- Container CPU timings, one sample per scenario: REST 1.46 s, GraphQL 2.82 s, gRPC including three snapshots 3.64 s, contextual follow-up 5.10 s. Initial model/prompt warmup took 34.24 s. These are smoke measurements, not a statistical latency benchmark. See [rancher-performance.json](rancher-performance.json).
+- Jev request/response adapter tests use the documented API contract and mocked responses; no live TypeSafe request was made because no API key was supplied.
+- The repository has been initialized locally and has not been published to GitHub.
+
+The current deployment runs at http://localhost:3000 in Rancher Desktop, independently of the temporary development sessions. Keep Rancher Desktop running. The old port 5173 preview processes have stopped. Temporary native verification tools remain under `/tmp/protocol-build`; the deployed containers and model volume are managed by Rancher Desktop. See [the run guide](rancher-desktop.md) for repeatable startup.
+
+Provider preferences: tests cover Ollama → Jev → Ollama with the same classifier instance, independent model selection, missing-key rejection without fallback, invalid provider rejection, safe status metadata, request serialization, browser preference persistence, New conversation behavior, and disabled choices during requests. The live deployment has no Jev API key, so hosted Jev inference remains tested with mocked responses, not a live TypeSafe call.
+
+Styled controls: the protocol dropdown uses Radix Select with a portal menu instead of a visible native select. Tests verify mouse selection, keyboard selection, Escape dismissal, focus restoration, no unintended form submission, disabled state during requests, and automatic reset of the next-question override. Existing Radix Dialog tests continue to pass.

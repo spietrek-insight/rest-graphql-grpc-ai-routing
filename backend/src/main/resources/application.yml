@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: protocol-studio
+  threads:
+    virtual:
+      enabled: true
+  mvc:
+    async:
+      request-timeout: 180000
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+router:
+  warmup: ${AI_WARMUP:true}
+  grpc-port: ${GRPC_PORT:9090}
+  provider: ${AI_PROVIDER:ollama}
+  ollama-url: ${OLLAMA_URL:http://localhost:11434}
+  model: ${AI_MODEL:}
+  ollama-model: ${OLLAMA_MODEL:}
+  jev-model: ${JEV_MODEL:}
+  typesafe-url: ${TYPESAFE_URL:https://api.typesafe.ai}
+  typesafe-key: ${TYPESAFE_API_KEY:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

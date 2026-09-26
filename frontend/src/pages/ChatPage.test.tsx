@@ -1,0 +1,133 @@
+import { beforeEach, it, expect, vi } from 'vitest';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ChatPage } from './ChatPage';
+import { useChatStore } from '@/store/useChatStore';
+import { getStatus, sendChat } from '@/api/chat';
+import { insight, providers } from '@/test/fixtures';
+import { usePreferencesStore } from '@/store/usePreferencesStore';
+vi.mock('@/api/chat', () => ({ getStatus: vi.fn(), sendChat: vi.fn() }));
+beforeEach(() => {
+  vi.resetAllMocks();
+  useChatStore.getState().reset();
+  usePreferencesStore.setState({ provider: null });
+  vi.mocked(getStatus).mockResolvedValue({
+    service: 'ready',
+    provider: 'ollama',
+    model: 'qwen3:4b',
+    local: true,
+    providers,
+  });
+});
+it('sends prompts, consumes next-question override, renders answer and resets session', async () => {
+  vi.mocked(sendChat).mockImplementation(async (_m, _o, _h, _s, event) => {
+    event({ type: 'decision', data: insight.decision });
+    event({ type: 'snapshot', data: { sequence: 1 } });
+    event({ type: 'result', data: { answer: 'The Millennium Falcon is a freighter.', insight } });
+  });
+  render(<ChatPage />);
+  await screen.findByText('Backend connected');
+  await userEvent.click(screen.getByRole('combobox'));
+  await userEvent.click(screen.getByRole('option', { name: /Force REST/ }));
+  await userEvent.click(screen.getByText('Meet the Millennium Falcon'));
+  expect(await screen.findByText('The Millennium Falcon is a freighter.')).toBeInTheDocument();
+  expect(vi.mocked(sendChat).mock.calls[0][1]).toBe('REST');
+  expect(screen.getByRole('combobox')).toHaveTextContent('Auto · AI chooses');
+  await userEvent.click(screen.getByText('Inspect this request'));
+  await userEvent.click(screen.getByRole('button', { name: 'Hide protocol insight' }));
+  expect(screen.queryByText('Protocol insight')).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Show protocol insight' }));
+  await userEvent.click(screen.getByText('New conversation'));
+  expect(screen.getByText('Discover what connects.')).toBeInTheDocument();
+});
+it('opens guide and returns through either navigation control', async () => {
+  render(<ChatPage />);
+  await userEvent.click(screen.getByText('Explore the dataset'));
+  expect(screen.getByText('19 starships')).toBeInTheDocument();
+  await userEvent.click(screen.getByText('Back to conversation'));
+  await userEvent.click(screen.getByText('Demo field guide'));
+  await userEvent.click(screen.getByText('Conversation'));
+  expect(screen.getByText('Discover what connects.')).toBeInTheDocument();
+});
+it('reports errors, retries and handles backend unavailability', async () => {
+  vi.mocked(getStatus).mockRejectedValue(new Error());
+  vi.mocked(sendChat)
+    .mockRejectedValueOnce(new Error('Model is offline'))
+    .mockRejectedValueOnce('failed');
+  render(<ChatPage />);
+  await userEvent.type(screen.getByRole('textbox'), 'hello');
+  await userEvent.click(screen.getByRole('button', { name: 'Send question' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Model is offline');
+  await userEvent.click(screen.getByText('Retry'));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong');
+  expect(screen.getByText('Backend unavailable')).toBeInTheDocument();
+});
+it('cancels in-flight work and ignores late events after reset', async () => {
+  let resolve!: () => void;
+  let emit!: Parameters<typeof sendChat>[4];
+  vi.mocked(sendChat).mockImplementation((_m, _o, _h, _s, events) => {
+    emit = events;
+    return new Promise<void>((r) => {
+      resolve = r;
+    });
+  });
+  render(<ChatPage />);
+  await userEvent.click(screen.getByText('Track the Millennium Falcon'));
+  await userEvent.click(screen.getByRole('button', { name: 'Stop response' }));
+  expect(vi.mocked(sendChat).mock.calls[0][3].aborted).toBe(true);
+  await userEvent.click(screen.getByText('New conversation'));
+  act(() => {
+    emit({ type: 'result', data: { answer: 'late', insight } });
+    resolve();
+  });
+  await waitFor(() => expect(useChatStore.getState().busy).toBe(false));
+  expect(screen.queryByText('late')).not.toBeInTheDocument();
+});
+it('ignores empty submissions, prevents duplicate requests and aborts on unmount', async () => {
+  vi.mocked(sendChat).mockImplementation(() => new Promise(() => {}));
+  const { unmount } = render(<ChatPage />);
+  fireEvent.submit(screen.getByRole('textbox').closest('form')!);
+  expect(sendChat).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByText('Track the Millennium Falcon'));
+  fireEvent.submit(screen.getByRole('textbox').closest('form')!);
+  expect(sendChat).toHaveBeenCalledOnce();
+  unmount();
+  expect(vi.mocked(sendChat).mock.calls[0][3].aborted).toBe(true);
+});
+it('sends the preference per question and keeps it across new conversations', async () => {
+  const user = userEvent.setup();
+  vi.mocked(sendChat).mockImplementation(async (_m, _o, _h, _s, event) => {
+    event({ type: 'result', data: { answer: 'A catalog answer.', insight } });
+  });
+  render(<ChatPage />);
+  await screen.findByText('Backend connected');
+  await user.click(screen.getByRole('button', { name: 'AI preferences' }));
+  await user.click(screen.getByRole('radio', { name: /Jev/ }));
+  await user.click(screen.getByRole('button', { name: 'Close preferences' }));
+  await user.click(screen.getByText('Meet the Millennium Falcon'));
+  await screen.findByText('A catalog answer.');
+  expect(vi.mocked(sendChat).mock.calls[0][5]).toBe('jev');
+  await user.click(screen.getByText('New conversation'));
+  expect(usePreferencesStore.getState().provider).toBe('jev');
+  await user.click(screen.getByRole('button', { name: 'AI preferences' }));
+  await user.click(screen.getByRole('radio', { name: /Ollama/ }));
+  await user.keyboard('{Escape}');
+  await user.click(screen.getByText('Meet the Millennium Falcon'));
+  expect(vi.mocked(sendChat).mock.calls[1][5]).toBe('ollama');
+});
+it('blocks a remembered unavailable provider without silently switching or sending a request', async () => {
+  usePreferencesStore.getState().setProvider('jev');
+  vi.mocked(getStatus).mockResolvedValue({
+    service: 'ready',
+    provider: 'ollama',
+    model: 'local',
+    local: true,
+    providers: providers.map((p) => ({ ...p, available: p.id === 'ollama' })),
+  });
+  render(<ChatPage />);
+  await screen.findByText('Backend connected');
+  await userEvent.click(screen.getByText('Meet the Millennium Falcon'));
+  expect(screen.getByRole('alert')).toHaveTextContent('selected AI provider is not configured');
+  expect(sendChat).not.toHaveBeenCalled();
+  expect(usePreferencesStore.getState().provider).toBe('jev');
+});
