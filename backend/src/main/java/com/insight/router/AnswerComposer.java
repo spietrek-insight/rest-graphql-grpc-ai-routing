@@ -2,7 +2,7 @@ package com.insight.router;
 
 import static com.insight.router.ChatModels.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.util.*;
 import org.springframework.stereotype.Component;
 
@@ -10,17 +10,17 @@ import org.springframework.stereotype.Component;
 public class AnswerComposer {
     public String compose(Decision decision, Exchange exchange) {
         if (decision.protocol() == Protocol.REST && decision.target().startsWith("producer:")) {
-            return exchange.response().path("name").asText()
+            return exchange.response().path("name").asString()
                     + " is producer #"
-                    + exchange.response().path("id").asText()
+                    + exchange.response().path("id").asString()
                     + " in the original demo catalog. Ask which starships and films are connected to this producer to explore relationships.";
         }
         if (decision.protocol() == Protocol.REST && decision.target().startsWith("film:")) {
             var names = new ArrayList<String>();
-            exchange.response().path("producers").forEach(p -> names.add(p.path("name").asText()));
-            return exchange.response().path("title").asText()
+            exchange.response().path("producers").forEach(p -> names.add(p.path("name").asString()));
+            return exchange.response().path("title").asString()
                     + " is film #"
-                    + exchange.response().path("id").asText()
+                    + exchange.response().path("id").asString()
                     + ". Its producers in the source dataset are "
                     + String.join(", ", names)
                     + ".";
@@ -39,12 +39,12 @@ public class AnswerComposer {
             var films = new ArrayList<String>();
             var producers = new LinkedHashSet<String>();
             for (var film : ship.path("films")) {
-                films.add(film.isTextual() ? film.asText() : film.path("title").asText());
-                film.path("producers").forEach(p -> producers.add(p.path("name").asText()));
+                films.add(film.isString() ? film.asString() : film.path("title").asString());
+                film.path("producers").forEach(p -> producers.add(p.path("name").asString()));
             }
-            ship.path("producers").forEach(p -> producers.add(p.asText()));
+            ship.path("producers").forEach(p -> producers.add(p.asString()));
             lines.add(
-                    ship.path("name").asText()
+                    ship.path("name").asString()
                             + " — "
                             + "Maximum speed: "
                             + ship.path("maxSpeed").asInt()

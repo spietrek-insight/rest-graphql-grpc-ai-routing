@@ -2,8 +2,8 @@ package com.insight.router;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import tools.jackson.databind.json.JsonMapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ class ChatControllerTest {
     void statusExposesOnlySafeProviderMetadataAndMissingKeyErrorIsActionable() throws Exception {
         var service = mock(ChatService.class);
         when(service.chat(any(), any())).thenThrow(new ProviderUnavailableException());
-        var mapper = new ObjectMapper();
+        var mapper = JsonMapper.builder().build();
         var controller =
                 new ChatController(
                         service, new RouterProperties(0, "ollama", "", "", "", ""), mapper);
@@ -37,7 +37,7 @@ class ChatControllerTest {
     @Test
     void clmStatusAndConfigurationErrorsNeverExposeServerSecrets() throws Exception {
         var service = mock(ChatService.class);
-        var mapper = new ObjectMapper();
+        var mapper =JsonMapper.builder().build();
         var props =
                 new RouterProperties(
                         0,
@@ -53,8 +53,8 @@ class ChatControllerTest {
                         "custom-clm");
         var controller = new ChatController(service, props, mapper);
         var status = mapper.valueToTree(controller.status());
-        assertThat(status.path("provider").asText()).isEqualTo("clm");
-        assertThat(status.path("model").asText()).isEqualTo("custom-clm");
+        assertThat(status.path("provider").asString()).isEqualTo("clm");
+        assertThat(status.path("model").asString()).isEqualTo("custom-clm");
         assertThat(status.path("providers").get(2).path("available").asBoolean()).isTrue();
         assertThat(status.toString()).doesNotContain("clm-secret", "jev-secret", "private-clm");
         when(service.chat(any(), any()))
@@ -73,7 +73,7 @@ class ChatControllerTest {
                 new ChatController(
                         service,
                         new RouterProperties(0, "jev", "", "jev-latest", "", ""),
-                        new ObjectMapper());
+						JsonMapper.builder().build());
         assertThat(controller.status().get("local")).isEqualTo(false);
         var out = new ByteArrayOutputStream();
         controller.chat(new ChatModels.Request("hello", null, List.of())).writeTo(out);
@@ -87,7 +87,7 @@ class ChatControllerTest {
                 new ChatController(
                         service,
                         new RouterProperties(0, "ollama", "", "x", "", ""),
-                        new ObjectMapper());
+						JsonMapper.builder().build());
         var stream = controller.chat(new ChatModels.Request("hello", null, List.of()));
         assertThatThrownBy(
                         () ->

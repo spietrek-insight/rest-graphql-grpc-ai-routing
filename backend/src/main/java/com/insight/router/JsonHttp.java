@@ -1,6 +1,8 @@
 package com.insight.router;
 
-import com.fasterxml.jackson.databind.*;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
@@ -11,11 +13,11 @@ import org.springframework.stereotype.Component;
 public class JsonHttp {
     public record Reply(JsonNode body, int bytes) {}
 
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
     private final HttpClient client =
             HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
-    public JsonHttp(ObjectMapper mapper) {
+    public JsonHttp(JsonMapper mapper) {
         this.mapper = mapper;
     }
 

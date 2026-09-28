@@ -2,34 +2,37 @@ package com.insight.router;
 
 import static com.insight.router.ChatModels.*;
 
-import com.fasterxml.jackson.databind.*;
-import com.google.protobuf.util.JsonFormat;
-import com.insight.router.proto.*;
+import com.google.protobuf.DescriptorProtos.FeatureSet.JsonFormat;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import org.springframework.boot.web.context.WebServerApplicationContext;
+import org.springframework.boot.web.server.context.WebServerApplicationContext;
+import org.springframework.grpc.client.GrpcChannelFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProtocolGateway {
     private final JsonHttp http;
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
     private final WebServerApplicationContext context;
-    private final GrpcServer grpc;
+	private static final String TRACKER_CHANNEL = "tracker";
+	private final GrpcChannelFactory channels;
 
     public ProtocolGateway(
             JsonHttp http,
-            ObjectMapper mapper,
+            JsonMapper mapper,
             WebServerApplicationContext context,
-            GrpcServer grpc) {
+			GrpcChannelFactory channels) {
         this.http = http;
         this.mapper = mapper;
         this.context = context;
-        this.grpc = grpc;
+		this.channels = channels;
     }
 
     public Exchange invoke(Decision decision, Consumer<Event> events) {
@@ -77,7 +80,7 @@ public class ProtocolGateway {
 
     private Exchange track(String target, Consumer<Event> events, long start) {
         ManagedChannel channel =
-                ManagedChannelBuilder.forAddress("127.0.0.1", grpc.port()).usePlaintext().build();
+				channels.createChannel(TRACKER_CHANNEL);
         var responses = mapper.createArrayNode();
         var requests = mapper.createArrayNode();
         var completed = new CompletableFuture<Void>();

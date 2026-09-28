@@ -2,8 +2,9 @@ package com.insight.router;
 
 import static com.insight.router.ChatModels.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import tools.jackson.databind.json.JsonMapper;
+
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +15,9 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class ChatController {
     private final ChatService service;
     private final RouterProperties properties;
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
 
-    public ChatController(ChatService service, RouterProperties properties, ObjectMapper mapper) {
+    public ChatController(ChatService service, RouterProperties properties, JsonMapper mapper) {
         this.service = service;
         this.properties = properties;
         this.mapper = mapper;

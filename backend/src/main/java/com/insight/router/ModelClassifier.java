@@ -1,8 +1,8 @@
 package com.insight.router;
 
+import tools.jackson.databind.json.JsonMapper;
 import static com.insight.router.ChatModels.*;
 
-import com.fasterxml.jackson.databind.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +13,11 @@ public class ModelClassifier implements IntentClassifier {
     private static final int HISTORY_CHARACTERS = 256;
     private final RouterProperties properties;
     private final JsonHttp http;
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
     private final Catalog catalog;
 
     public ModelClassifier(
-            RouterProperties properties, JsonHttp http, ObjectMapper mapper, Catalog catalog) {
+            RouterProperties properties, JsonHttp http, JsonMapper mapper, Catalog catalog) {
         this.catalog = catalog;
         this.properties = properties;
         this.http = http;
@@ -141,10 +141,10 @@ public class ModelClassifier implements IntentClassifier {
             throw new IllegalStateException(
                     "The model did not select exactly one tool. Retry or use a presenter override.");
         var function = calls.get(0).path("function");
-        var protocol = Protocol.valueOf(function.path("name").asText());
+        var protocol = Protocol.valueOf(function.path("name").asString());
         return new Decision(
                 protocol,
-                function.path("arguments").path("target").asText(),
+                function.path("arguments").path("target").asString(),
                 "Ollama · " + properties.modelFor("ollama"),
                 protocol.rationale(),
                 calls);
@@ -222,11 +222,11 @@ public class ModelClassifier implements IntentClassifier {
                                 key.isBlank() ? Map.of() : Map.of("Authorization", "Bearer " + key))
                         .body();
         var answers = result.path("answers");
-        var protocol = Protocol.valueOf(answers.path("protocol").path("choice").asText());
+        var protocol = Protocol.valueOf(answers.path("protocol").path("choice").asString());
         return new Decision(
                 protocol,
-                answers.path("target").path("choice").asText(),
-                label + " · " + result.path("model").asText(properties.modelFor(provider)),
+                answers.path("target").path("choice").asString(),
+                label + " · " + result.path("model").asString(properties.modelFor(provider)),
                 protocol.rationale(),
                 answers);
     }

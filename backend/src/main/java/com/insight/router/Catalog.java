@@ -1,6 +1,6 @@
 package com.insight.router;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.util.*;
 import org.springframework.core.io.ClassPathResource;
@@ -34,7 +34,8 @@ public class Catalog {
 
     public Catalog() {
         try (var input = new ClassPathResource("catalog.json").getInputStream()) {
-            data = new ObjectMapper().readValue(input, Dataset.class);
+			var mapper = JsonMapper.builder().build();
+            data = mapper.readValue(input, Dataset.class);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot load the canonical catalog", e);
         }
