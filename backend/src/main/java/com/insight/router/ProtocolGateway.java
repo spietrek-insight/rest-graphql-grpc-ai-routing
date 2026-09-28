@@ -2,8 +2,9 @@ package com.insight.router;
 
 import static com.insight.router.ChatModels.*;
 
-import com.google.protobuf.DescriptorProtos.FeatureSet.JsonFormat;
-import io.grpc.*;
+import com.google.protobuf.util.JsonFormat;
+import com.insight.router.proto.*;
+import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -97,7 +98,7 @@ public class ProtocolGateway {
                                                 var decoded =
                                                         mapper.readTree(
                                                                 JsonFormat.printer()
-                                                                        .includingDefaultValueFields()
+                                                                        .alwaysPrintFieldsWithNoPresence()
                                                                         .print(value));
                                                 responses.add(decoded);
                                                 bytes.addAndGet(value.getSerializedSize());
@@ -131,7 +132,7 @@ public class ProtocolGateway {
             completed.get(11, TimeUnit.SECONDS);
             return new Exchange(
                     "catalog.StarshipTracker/Track",
-                    "127.0.0.1:" + grpc.port(),
+					TRACKER_CHANNEL,
                     "Protobuf over HTTP/2 · decoded JSON",
                     requests,
                     responses,

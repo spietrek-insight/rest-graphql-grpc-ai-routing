@@ -6,7 +6,6 @@ import io.grpc.stub.StreamObserver;
 import java.time.Instant;
 
 import org.springframework.grpc.server.service.GrpcService;
-import org.springframework.stereotype.Service;
 
 @GrpcService
 public class TrackerService extends StarshipTrackerGrpc.StarshipTrackerImplBase {

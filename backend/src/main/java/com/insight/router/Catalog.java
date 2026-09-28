@@ -8,6 +8,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class Catalog {
+	private final Dataset data;
+
+	public Catalog(JsonMapper jsonMapper) {
+		try (var input = new ClassPathResource("catalog.json").getInputStream()) {
+			data = jsonMapper.readValue(input, Dataset.class);
+		} catch (IOException e) {
+			throw new IllegalStateException("Cannot load the canonical catalog", e);
+		}
+	}
     public record Producer(String id, String name) {}
 
     public record Film(String id, String title, List<Producer> producers) {
@@ -27,17 +36,6 @@ public class Catalog {
             starships = List.copyOf(starships);
             films = List.copyOf(films);
             producers = List.copyOf(producers);
-        }
-    }
-
-    private final Dataset data;
-
-    public Catalog() {
-        try (var input = new ClassPathResource("catalog.json").getInputStream()) {
-			var mapper = JsonMapper.builder().build();
-            data = mapper.readValue(input, Dataset.class);
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot load the canonical catalog", e);
         }
     }
 

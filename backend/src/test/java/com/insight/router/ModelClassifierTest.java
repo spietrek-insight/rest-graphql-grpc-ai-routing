@@ -15,10 +15,10 @@ class ModelClassifierTest {
 
     ModelClassifier classifier(String provider, String key) {
         return new ModelClassifier(
-                new RouterProperties(0, provider, "http://ollama", "test", "http://jev", key),
+                new RouterProperties(provider, "http://ollama", "test", "http://jev", key),
                 http,
                 mapper,
-                new Catalog());
+                new Catalog(JsonMapper.builder().build()));
     }
 
     Request request(String text, Protocol override) {
@@ -149,7 +149,6 @@ class ModelClassifierTest {
                 .thenReturn(new JsonHttp.Reply(hosted, 1));
         var properties =
                 new RouterProperties(
-                        0,
                         "ollama",
                         "http://ollama",
                         "legacy",
@@ -157,7 +156,7 @@ class ModelClassifierTest {
                         "secret",
                         "local-model",
                         "hosted-model");
-        var c = new ModelClassifier(properties, http, mapper, new Catalog());
+        var c = new ModelClassifier(properties, http, mapper, new Catalog(JsonMapper.builder().build()));
         assertThat(c.classify(new Request("Falcon", null, List.of(), "ollama")).source())
                 .isEqualTo("Ollama · local-model");
         assertThat(c.classify(new Request("its films?", null, List.of(), "jev")).source())

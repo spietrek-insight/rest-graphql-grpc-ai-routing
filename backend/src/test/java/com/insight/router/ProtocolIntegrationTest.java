@@ -14,7 +14,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"router.grpc-port=0", "router.warmup=false"})
+        properties = {"router.warmup=false"})
 class ProtocolIntegrationTest {
     @Autowired ChatService service;
     @Autowired JsonMapper mapper;

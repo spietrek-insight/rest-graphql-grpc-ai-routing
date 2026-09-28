@@ -17,7 +17,6 @@ class ClmClassifierTest {
 
     RouterProperties properties(String url, String key) {
         return new RouterProperties(
-                0,
                 "clm",
                 "http://ollama",
                 "legacy",
@@ -31,7 +30,7 @@ class ClmClassifierTest {
     }
 
     ModelClassifier classifier(String url, String key) {
-        return new ModelClassifier(properties(url, key), http, mapper, new Catalog());
+        return new ModelClassifier(properties(url, key), http, mapper, new Catalog(JsonMapper.builder().build()));
     }
 
     @Test
@@ -82,7 +81,6 @@ class ClmClassifierTest {
                                 1));
         var props =
                 new RouterProperties(
-                        0,
                         "ollama",
                         "http://ollama",
                         "",
@@ -94,7 +92,7 @@ class ClmClassifierTest {
                         "clm-secret",
                         "");
         var result =
-                new ModelClassifier(props, http, mapper, new Catalog())
+                new ModelClassifier(props, http, mapper, new Catalog(JsonMapper.builder().build()))
                         .classify(new Request("A New Hope", null, List.of(), "clm"));
         assertThat(result.source()).isEqualTo("CLM · clm-latest");
         verify(http)

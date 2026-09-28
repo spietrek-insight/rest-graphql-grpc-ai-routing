@@ -16,7 +16,7 @@ class ChatControllerTest {
         var mapper = JsonMapper.builder().build();
         var controller =
                 new ChatController(
-                        service, new RouterProperties(0, "ollama", "", "", "", ""), mapper);
+                        service, new RouterProperties("ollama", "", "", "", ""), mapper);
         var status = mapper.valueToTree(controller.status());
         assertThat(status.path("providers").get(1).path("available").asBoolean()).isFalse();
         assertThat(status.path("providers").get(2).path("available").asBoolean()).isFalse();
@@ -26,7 +26,7 @@ class ChatControllerTest {
         var configured =
                 new ChatController(
                         service,
-                        new RouterProperties(0, "ollama", "", "", "", "secret-key"),
+                        new RouterProperties("ollama", "", "", "", "secret-key"),
                         mapper);
         var configuredStatus = mapper.valueToTree(configured.status());
         assertThat(configuredStatus.path("providers").get(1).path("available").asBoolean())
@@ -40,7 +40,6 @@ class ChatControllerTest {
         var mapper =JsonMapper.builder().build();
         var props =
                 new RouterProperties(
-                        0,
                         "clm",
                         "",
                         "",
@@ -72,7 +71,7 @@ class ChatControllerTest {
         var controller =
                 new ChatController(
                         service,
-                        new RouterProperties(0, "jev", "", "jev-latest", "", ""),
+                        new RouterProperties("jev", "", "jev-latest", "", ""),
 						JsonMapper.builder().build());
         assertThat(controller.status().get("local")).isEqualTo(false);
         var out = new ByteArrayOutputStream();
@@ -86,7 +85,7 @@ class ChatControllerTest {
         var controller =
                 new ChatController(
                         service,
-                        new RouterProperties(0, "ollama", "", "x", "", ""),
+                        new RouterProperties("ollama", "", "x", "", ""),
 						JsonMapper.builder().build());
         var stream = controller.chat(new ChatModels.Request("hello", null, List.of()));
         assertThatThrownBy(
