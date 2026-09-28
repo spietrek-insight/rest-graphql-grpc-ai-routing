@@ -3,11 +3,11 @@ package com.insight.router;
 import static com.insight.router.ChatModels.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class ModelClassifierTest {
     final JsonMapper mapper = JsonMapper.builder().build();
@@ -156,7 +156,9 @@ class ModelClassifierTest {
                         "secret",
                         "local-model",
                         "hosted-model");
-        var c = new ModelClassifier(properties, http, mapper, new Catalog(JsonMapper.builder().build()));
+        var c =
+                new ModelClassifier(
+                        properties, http, mapper, new Catalog(JsonMapper.builder().build()));
         assertThat(c.classify(new Request("Falcon", null, List.of(), "ollama")).source())
                 .isEqualTo("Ollama · local-model");
         assertThat(c.classify(new Request("its films?", null, List.of(), "jev")).source())

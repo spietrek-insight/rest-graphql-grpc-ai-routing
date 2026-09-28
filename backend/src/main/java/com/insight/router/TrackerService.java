@@ -4,7 +4,6 @@ import com.insight.router.proto.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.time.Instant;
-
 import org.springframework.grpc.server.service.GrpcService;
 
 @GrpcService

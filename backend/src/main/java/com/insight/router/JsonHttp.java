@@ -1,13 +1,12 @@
 package com.insight.router;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
 import java.util.Map;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class JsonHttp {

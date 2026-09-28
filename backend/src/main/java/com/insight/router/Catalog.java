@@ -1,22 +1,23 @@
 package com.insight.router;
 
-import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.util.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class Catalog {
-	private final Dataset data;
+    private final Dataset data;
 
-	public Catalog(JsonMapper jsonMapper) {
-		try (var input = new ClassPathResource("catalog.json").getInputStream()) {
-			data = jsonMapper.readValue(input, Dataset.class);
-		} catch (IOException e) {
-			throw new IllegalStateException("Cannot load the canonical catalog", e);
-		}
-	}
+    public Catalog(JsonMapper jsonMapper) {
+        try (var input = new ClassPathResource("catalog.json").getInputStream()) {
+            data = jsonMapper.readValue(input, Dataset.class);
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot load the canonical catalog", e);
+        }
+    }
+
     public record Producer(String id, String name) {}
 
     public record Film(String id, String title, List<Producer> producers) {

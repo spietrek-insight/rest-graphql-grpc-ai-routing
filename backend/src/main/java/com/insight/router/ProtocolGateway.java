@@ -6,9 +6,6 @@ import com.google.protobuf.util.JsonFormat;
 import com.insight.router.proto.*;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,24 +13,26 @@ import java.util.function.Consumer;
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
 import org.springframework.grpc.client.GrpcChannelFactory;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class ProtocolGateway {
     private final JsonHttp http;
     private final JsonMapper mapper;
     private final WebServerApplicationContext context;
-	private static final String TRACKER_CHANNEL = "tracker";
-	private final GrpcChannelFactory channels;
+    private static final String TRACKER_CHANNEL = "tracker";
+    private final GrpcChannelFactory channels;
 
     public ProtocolGateway(
             JsonHttp http,
             JsonMapper mapper,
             WebServerApplicationContext context,
-			GrpcChannelFactory channels) {
+            GrpcChannelFactory channels) {
         this.http = http;
         this.mapper = mapper;
         this.context = context;
-		this.channels = channels;
+        this.channels = channels;
     }
 
     public Exchange invoke(Decision decision, Consumer<Event> events) {
@@ -80,8 +79,7 @@ public class ProtocolGateway {
     }
 
     private Exchange track(String target, Consumer<Event> events, long start) {
-        ManagedChannel channel =
-				channels.createChannel(TRACKER_CHANNEL);
+        ManagedChannel channel = channels.createChannel(TRACKER_CHANNEL);
         var responses = mapper.createArrayNode();
         var requests = mapper.createArrayNode();
         var completed = new CompletableFuture<Void>();
@@ -132,7 +130,7 @@ public class ProtocolGateway {
             completed.get(11, TimeUnit.SECONDS);
             return new Exchange(
                     "catalog.StarshipTracker/Track",
-					TRACKER_CHANNEL,
+                    TRACKER_CHANNEL,
                     "Protobuf over HTTP/2 · decoded JSON",
                     requests,
                     responses,

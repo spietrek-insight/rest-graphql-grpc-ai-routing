@@ -1,6 +1,5 @@
 package com.insight.router;
 
-import tools.jackson.databind.json.JsonMapper;
 import static com.insight.router.ChatModels.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

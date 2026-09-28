@@ -2,9 +2,9 @@ package com.insight.router;
 
 import static com.insight.router.ChatModels.*;
 
-import tools.jackson.databind.JsonNode;
 import java.util.*;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 @Component
 public class AnswerComposer {
@@ -17,7 +17,9 @@ public class AnswerComposer {
         }
         if (decision.protocol() == Protocol.REST && decision.target().startsWith("film:")) {
             var names = new ArrayList<String>();
-            exchange.response().path("producers").forEach(p -> names.add(p.path("name").asString()));
+            exchange.response()
+                    .path("producers")
+                    .forEach(p -> names.add(p.path("name").asString()));
             return exchange.response().path("title").asString()
                     + " is film #"
                     + exchange.response().path("id").asString()

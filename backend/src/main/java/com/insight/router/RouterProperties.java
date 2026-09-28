@@ -48,7 +48,7 @@ public record RouterProperties(
             String model,
             String typesafeUrl,
             String typesafeKey) {
-        this( provider, ollamaUrl, model, typesafeUrl, typesafeKey, "", "");
+        this(provider, ollamaUrl, model, typesafeUrl, typesafeKey, "", "");
     }
 
     public String modelFor(String selectedProvider) {

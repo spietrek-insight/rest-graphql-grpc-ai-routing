@@ -1,9 +1,9 @@
 package com.insight.router;
 
-import tools.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 public final class ChatModels {
     private ChatModels() {}

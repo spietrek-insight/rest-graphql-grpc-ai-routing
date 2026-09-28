@@ -4,12 +4,11 @@ import static com.insight.router.ChatModels.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class ClmClassifierTest {
     final JsonMapper mapper = JsonMapper.builder().build();
@@ -30,7 +29,8 @@ class ClmClassifierTest {
     }
 
     ModelClassifier classifier(String url, String key) {
-        return new ModelClassifier(properties(url, key), http, mapper, new Catalog(JsonMapper.builder().build()));
+        return new ModelClassifier(
+                properties(url, key), http, mapper, new Catalog(JsonMapper.builder().build()));
     }
 
     @Test

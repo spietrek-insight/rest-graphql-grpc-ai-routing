@@ -1,10 +1,10 @@
 package com.insight.router;
 
-import tools.jackson.databind.json.JsonMapper;
 import static com.insight.router.ChatModels.*;
 
 import java.util.*;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class ModelClassifier implements IntentClassifier {

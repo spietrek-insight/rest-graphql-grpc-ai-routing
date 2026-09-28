@@ -2,11 +2,11 @@ package com.insight.router;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.*;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class ChatControllerTest {
     @Test
@@ -15,8 +15,7 @@ class ChatControllerTest {
         when(service.chat(any(), any())).thenThrow(new ProviderUnavailableException());
         var mapper = JsonMapper.builder().build();
         var controller =
-                new ChatController(
-                        service, new RouterProperties("ollama", "", "", "", ""), mapper);
+                new ChatController(service, new RouterProperties("ollama", "", "", "", ""), mapper);
         var status = mapper.valueToTree(controller.status());
         assertThat(status.path("providers").get(1).path("available").asBoolean()).isFalse();
         assertThat(status.path("providers").get(2).path("available").asBoolean()).isFalse();
@@ -25,9 +24,7 @@ class ChatControllerTest {
         assertThat(out.toString()).contains("Jev is not configured", "AI preferences");
         var configured =
                 new ChatController(
-                        service,
-                        new RouterProperties("ollama", "", "", "", "secret-key"),
-                        mapper);
+                        service, new RouterProperties("ollama", "", "", "", "secret-key"), mapper);
         var configuredStatus = mapper.valueToTree(configured.status());
         assertThat(configuredStatus.path("providers").get(1).path("available").asBoolean())
                 .isTrue();
@@ -37,7 +34,7 @@ class ChatControllerTest {
     @Test
     void clmStatusAndConfigurationErrorsNeverExposeServerSecrets() throws Exception {
         var service = mock(ChatService.class);
-        var mapper =JsonMapper.builder().build();
+        var mapper = JsonMapper.builder().build();
         var props =
                 new RouterProperties(
                         "clm",
@@ -72,7 +69,7 @@ class ChatControllerTest {
                 new ChatController(
                         service,
                         new RouterProperties("jev", "", "jev-latest", "", ""),
-						JsonMapper.builder().build());
+                        JsonMapper.builder().build());
         assertThat(controller.status().get("local")).isEqualTo(false);
         var out = new ByteArrayOutputStream();
         controller.chat(new ChatModels.Request("hello", null, List.of())).writeTo(out);
@@ -86,7 +83,7 @@ class ChatControllerTest {
                 new ChatController(
                         service,
                         new RouterProperties("ollama", "", "x", "", ""),
-						JsonMapper.builder().build());
+                        JsonMapper.builder().build());
         var stream = controller.chat(new ChatModels.Request("hello", null, List.of()));
         assertThatThrownBy(
                         () ->

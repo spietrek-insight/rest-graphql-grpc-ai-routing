@@ -3,12 +3,11 @@ package com.insight.router;
 import static com.insight.router.ChatModels.*;
 
 import jakarta.validation.Valid;
-import tools.jackson.databind.json.JsonMapper;
-
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import tools.jackson.databind.json.JsonMapper;
 
 @RestController
 @RequestMapping("/api")

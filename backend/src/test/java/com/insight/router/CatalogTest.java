@@ -5,9 +5,8 @@ import static org.mockito.Mockito.*;
 
 import com.insight.router.proto.*;
 import io.grpc.stub.StreamObserver;
-import tools.jackson.databind.json.JsonMapper;
-
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class CatalogTest {
     final Catalog catalog = new Catalog(JsonMapper.builder().build());
