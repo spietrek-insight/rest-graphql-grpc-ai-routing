@@ -11,7 +11,7 @@ class ModelWarmupTest {
     final IntentClassifier classifier = mock(IntentClassifier.class);
 
     RouterProperties properties(String provider) {
-        return new RouterProperties(0, provider, "", "model", "", "");
+        return new RouterProperties(provider, "", "model", "", "");
     }
 
     @Test

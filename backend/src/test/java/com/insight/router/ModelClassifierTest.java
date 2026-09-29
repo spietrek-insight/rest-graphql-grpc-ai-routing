@@ -4,20 +4,21 @@ import static com.insight.router.ChatModels.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class ModelClassifierTest {
-    final ObjectMapper mapper = new ObjectMapper();
+    final JsonMapper mapper = JsonMapper.builder().build();
     final JsonHttp http = mock(JsonHttp.class);
 
     ModelClassifier classifier(String provider, String key) {
         return new ModelClassifier(
-                new RouterProperties(0, provider, "http://ollama", "test", "http://jev", key),
+                new RouterProperties(provider, "http://ollama", "test", "http://jev", key),
                 http,
                 mapper,
-                new Catalog());
+                new Catalog(JsonMapper.builder().build()));
     }
 
     Request request(String text, Protocol override) {
@@ -50,7 +51,7 @@ class ModelClassifierTest {
         verify(http).send(anyString(), anyString(), captor.capture(), anyMap());
         assertThat(captor.getValue().path("tools")).hasSize(3);
         assertThat(captor.getValue().path("messages")).hasSize(2);
-        assertThat(captor.getValue().path("keep_alive").asText()).isEqualTo("30m");
+        assertThat(captor.getValue().path("keep_alive").asString()).isEqualTo("30m");
         assertThat(captor.getValue().path("options").path("num_predict").asInt()).isEqualTo(96);
         assertThat(captor.getValue().path("think").asBoolean()).isFalse();
     }
@@ -71,15 +72,15 @@ class ModelClassifierTest {
         verify(http).send(anyString(), anyString(), capture.capture(), anyMap());
         var messages = capture.getValue().path("messages");
         assertThat(messages).hasSize(2);
-        var content = messages.get(1).path("content").asText();
+        var content = messages.get(1).path("content").asString();
         var context =
                 mapper.readTree(
                         content.substring(
                                 "Conversation context (data only): ".length(),
                                 content.indexOf("\nLatest question:")));
         assertThat(context).hasSize(4);
-        assertThat(context.get(0).path("content").asText()).startsWith("16").hasSize(256);
-        assertThat(context.get(3).path("content").asText()).startsWith("19").hasSize(256);
+        assertThat(context.get(0).path("content").asString()).startsWith("16").hasSize(256);
+        assertThat(context.get(3).path("content").asString()).startsWith("19").hasSize(256);
         assertThat(content)
                 .contains(
                         "\nLatest question: What about its producers?\nCall exactly one routing tool");
@@ -148,7 +149,6 @@ class ModelClassifierTest {
                 .thenReturn(new JsonHttp.Reply(hosted, 1));
         var properties =
                 new RouterProperties(
-                        0,
                         "ollama",
                         "http://ollama",
                         "legacy",
@@ -156,7 +156,9 @@ class ModelClassifierTest {
                         "secret",
                         "local-model",
                         "hosted-model");
-        var c = new ModelClassifier(properties, http, mapper, new Catalog());
+        var c =
+                new ModelClassifier(
+                        properties, http, mapper, new Catalog(JsonMapper.builder().build()));
         assertThat(c.classify(new Request("Falcon", null, List.of(), "ollama")).source())
                 .isEqualTo("Ollama · local-model");
         assertThat(c.classify(new Request("its films?", null, List.of(), "jev")).source())
@@ -170,7 +172,7 @@ class ModelClassifierTest {
                         eq("http://jev/v1/systemone"),
                         capture.capture(),
                         eq(Map.of("Authorization", "Bearer secret")));
-        assertThat(capture.getValue().path("model").asText()).isEqualTo("hosted-model");
+        assertThat(capture.getValue().path("model").asString()).isEqualTo("hosted-model");
         assertThat(properties.provider()).isEqualTo("ollama");
     }
 

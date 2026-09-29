@@ -5,7 +5,6 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("router")
 public record RouterProperties(
-        int grpcPort,
         String provider,
         String ollamaUrl,
         String model,
@@ -23,7 +22,6 @@ public record RouterProperties(
     }
 
     public RouterProperties(
-            int grpcPort,
             String provider,
             String ollamaUrl,
             String model,
@@ -32,7 +30,6 @@ public record RouterProperties(
             String ollamaModel,
             String jevModel) {
         this(
-                grpcPort,
                 provider,
                 ollamaUrl,
                 model,
@@ -46,13 +43,12 @@ public record RouterProperties(
     }
 
     public RouterProperties(
-            int grpcPort,
             String provider,
             String ollamaUrl,
             String model,
             String typesafeUrl,
             String typesafeKey) {
-        this(grpcPort, provider, ollamaUrl, model, typesafeUrl, typesafeKey, "", "");
+        this(provider, ollamaUrl, model, typesafeUrl, typesafeKey, "", "");
     }
 
     public String modelFor(String selectedProvider) {

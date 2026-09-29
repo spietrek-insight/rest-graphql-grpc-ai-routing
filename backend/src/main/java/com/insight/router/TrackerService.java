@@ -4,9 +4,9 @@ import com.insight.router.proto.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.time.Instant;
-import org.springframework.stereotype.Service;
+import org.springframework.grpc.server.service.GrpcService;
 
-@Service
+@GrpcService
 public class TrackerService extends StarshipTrackerGrpc.StarshipTrackerImplBase {
     private final Catalog catalog;
 

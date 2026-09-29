@@ -7,13 +7,21 @@ spring:
   mvc:
     async:
       request-timeout: 180000
+  web:
+    error:
+      include-message: never
+  grpc:
+    server:
+      port:${GRPC_PORT:9090}
+    client:
+      channel:
+        tracker:
+          target: static://127.0.0.1:${GRPC_PORT:9090}
+
 server:
   port: ${PORT:8080}
-  error:
-    include-message: never
 router:
   warmup: ${AI_WARMUP:true}
-  grpc-port: ${GRPC_PORT:9090}
   provider: ${AI_PROVIDER:ollama}
   ollama-url: ${OLLAMA_URL:http://localhost:11434}
   model: ${AI_MODEL:}

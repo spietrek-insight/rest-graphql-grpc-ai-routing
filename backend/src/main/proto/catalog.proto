@@ -6,6 +6,23 @@ service StarshipTracker {
   // Each client request produces a snapshot; both directions remain open.
   rpc Track(stream TrackRequest) returns (stream TrackSnapshot);
 }
-message TrackRequest { string target = 1; int32 sequence = 2; }
-message TrackedShip { string id = 1; string name = 2; int32 max_speed = 3; double length = 6; repeated string films = 4; repeated string producers = 5; }
-message TrackSnapshot { repeated TrackedShip starships = 1; int32 sequence = 2; string observed_at = 3; string status = 4; }
+message TrackRequest {
+  string target = 1;
+  int32 sequence = 2;
+}
+
+message TrackedShip {
+  string id = 1;
+  string name = 2;
+  int32 max_speed = 3;
+  double length = 6;
+  repeated string films = 4;
+  repeated string producers = 5;
+}
+
+message TrackSnapshot {
+  repeated TrackedShip starships = 1;
+  int32 sequence = 2;
+  string observed_at = 3;
+  string status = 4;
+}

@@ -4,18 +4,18 @@ import static com.insight.router.ChatModels.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class ClmClassifierTest {
-    final ObjectMapper mapper = new ObjectMapper();
+    final JsonMapper mapper = JsonMapper.builder().build();
     final JsonHttp http = mock(JsonHttp.class);
 
     RouterProperties properties(String url, String key) {
         return new RouterProperties(
-                0,
                 "clm",
                 "http://ollama",
                 "legacy",
@@ -29,7 +29,8 @@ class ClmClassifierTest {
     }
 
     ModelClassifier classifier(String url, String key) {
-        return new ModelClassifier(properties(url, key), http, mapper, new Catalog());
+        return new ModelClassifier(
+                properties(url, key), http, mapper, new Catalog(JsonMapper.builder().build()));
     }
 
     @Test
@@ -58,12 +59,12 @@ class ClmClassifierTest {
         verify(http)
                 .send(eq("POST"), eq("http://clm/v1/systemone"), capture.capture(), eq(Map.of()));
         var body = capture.getValue();
-        assertThat(body.path("model").asText()).isEqualTo("clm-test");
-        assertThat(body.path("questions").path("protocol").path("type").asText())
+        assertThat(body.path("model").asString()).isEqualTo("clm-test");
+        assertThat(body.path("questions").path("protocol").path("type").asString())
                 .isEqualTo("choice");
         assertThat(body.path("questions").path("protocol").path("criteria")).hasSize(3);
         assertThat(body.path("questions").path("target").path("criteria").has("none")).isTrue();
-        assertThat(body.path("state").asText())
+        assertThat(body.path("state").asString())
                 .contains("turn-16:", "turn-19:")
                 .doesNotContain("turn-15:", "x".repeat(257))
                 .endsWith("Latest question: Which films does it appear in?");
@@ -80,7 +81,6 @@ class ClmClassifierTest {
                                 1));
         var props =
                 new RouterProperties(
-                        0,
                         "ollama",
                         "http://ollama",
                         "",
@@ -92,7 +92,7 @@ class ClmClassifierTest {
                         "clm-secret",
                         "");
         var result =
-                new ModelClassifier(props, http, mapper, new Catalog())
+                new ModelClassifier(props, http, mapper, new Catalog(JsonMapper.builder().build()))
                         .classify(new Request("A New Hope", null, List.of(), "clm"));
         assertThat(result.source()).isEqualTo("CLM · clm-latest");
         verify(http)

@@ -3,7 +3,6 @@ package com.insight.router;
 import static com.insight.router.ChatModels.*;
 import static org.assertj.core.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.*;
 import java.net.URI;
 import java.net.http.*;
 import java.util.*;
@@ -11,13 +10,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"router.grpc-port=0", "router.warmup=false"})
+        properties = {"router.warmup=false"})
 class ProtocolIntegrationTest {
     @Autowired ChatService service;
-    @Autowired ObjectMapper mapper;
+    @Autowired JsonMapper mapper;
     @Autowired JsonHttp jsonHttp;
     @LocalServerPort int port;
 
@@ -133,8 +133,8 @@ class ProtocolIntegrationTest {
         assertThat(response.statusCode()).isEqualTo(200);
         var lines = response.body().lines().toList();
         assertThat(lines).hasSize(2);
-        assertThat(mapper.readTree(lines.get(0)).path("type").asText()).isEqualTo("decision");
-        assertThat(mapper.readTree(lines.get(1)).path("data").path("answer").asText())
+        assertThat(mapper.readTree(lines.get(0)).path("type").asString()).isEqualTo("decision");
+        assertThat(mapper.readTree(lines.get(1)).path("data").path("answer").asString())
                 .contains("Millennium Falcon");
     }
 
