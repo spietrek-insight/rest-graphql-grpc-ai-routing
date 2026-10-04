@@ -17,7 +17,10 @@ message TrackedShip {
   int32 max_speed = 3;
   double length = 6;
   repeated string films = 4;
-  repeated string producers = 5;
+  reserved 5;
+  reserved "producers";
+  repeated string cast = 7;
+  repeated FlightCrew crew = 8;
 }
 
 message TrackSnapshot {
@@ -25,4 +28,13 @@ message TrackSnapshot {
   int32 sequence = 2;
   string observed_at = 3;
   string status = 4;
+}
+
+message CastPerson { string id = 1; string name = 2; }
+message FlightCrew {
+  string film_id = 1;
+  string film_title = 2;
+  CastPerson member = 3;
+  string role = 4;
+  string source = 5;
 }

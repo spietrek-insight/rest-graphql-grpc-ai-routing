@@ -39,11 +39,11 @@ export function CatalogGuide({ onClose }: { onClose: () => void }) {
         </div>
         <div>
           <Users />
-          <h3>4 producers</h3>
+          <h3>18 characters</h3>
           <p>
-            Gary Kurtz
+            Luke Skywalker · Han Solo
             <br />
-            Rick McCallum · …
+            Leia Organa · Chewbacca
           </p>
         </div>
       </div>
@@ -56,8 +56,10 @@ export function CatalogGuide({ onClose }: { onClose: () => void }) {
           returned records.
         </p>
         <p>
-          Records and relationships are preserved from the original Devnexus demo, including its
-          source credits. Conversations stay in memory and disappear on refresh.
+          Original ship records are enriched with selected cast for all six films. Cast means
+          characters, with appearances linked to each film. Verified Falcon crew covers A New Hope
+          and the Battle of Endor; other flight history is not yet recorded. Cast membership does
+          not imply piloting. Conversations stay in memory and disappear on refresh.
         </p>
       </div>
     </section>

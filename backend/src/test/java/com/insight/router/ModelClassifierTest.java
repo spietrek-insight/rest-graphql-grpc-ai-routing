@@ -44,7 +44,7 @@ class ModelClassifierTest {
                         "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"GRAPHQL\",\"arguments\":{\"target\":\"ship:7\"}}}]}}");
         when(http.send(eq("POST"), eq("http://ollama/api/chat"), any(), eq(Map.of())))
                 .thenReturn(new JsonHttp.Reply(result, 1));
-        var decision = classifier("ollama", "").classify(request("what about its producer?", null));
+        var decision = classifier("ollama", "").classify(request("what about its cast?", null));
         assertThat(decision.protocol()).isEqualTo(Protocol.GRAPHQL);
         assertThat(decision.target()).isEqualTo("ship:7");
         var captor = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
@@ -54,6 +54,35 @@ class ModelClassifierTest {
         assertThat(captor.getValue().path("keep_alive").asString()).isEqualTo("30m");
         assertThat(captor.getValue().path("options").path("num_predict").asInt()).isEqualTo(96);
         assertThat(captor.getValue().path("think").asBoolean()).isFalse();
+    }
+
+    @Test
+    void crewToolCallKeepsBothShipAndFilmWithCompactSchema() throws Exception {
+        when(http.send(anyString(), anyString(), any(), anyMap()))
+                .thenReturn(
+                        new JsonHttp.Reply(
+                                mapper.readTree(
+                                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"GRAPHQL\",\"arguments\":{\"target\":\"crew:5:1\"}}}]}}"),
+                                1));
+        var decision =
+                classifier("ollama", "")
+                        .classify(request("who flew the millennium falcon in new hope", null));
+        assertThat(decision.target()).isEqualTo("crew:5:1");
+        var capture = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
+        verify(http).send(anyString(), anyString(), capture.capture(), anyMap());
+        assertThat(capture.getValue().toString().length()).isLessThan(10000);
+        var choices =
+                capture.getValue()
+                        .path("tools")
+                        .get(1)
+                        .path("function")
+                        .path("parameters")
+                        .path("properties")
+                        .path("target")
+                        .path("enum");
+        assertThat(choices).contains(mapper.valueToTree("crew:5:1"), mapper.valueToTree("film:1"));
+        assertThat(choices)
+                .doesNotContain(mapper.valueToTree("crew:20:1"), mapper.valueToTree("producer:1"));
     }
 
     @Test
@@ -67,7 +96,7 @@ class ModelClassifierTest {
                 java.util.stream.IntStream.range(0, 20)
                         .mapToObj(i -> new Turn("user", i + "x".repeat(1000)))
                         .toList();
-        classifier("ollama", "").classify(new Request("What about its producers?", null, history));
+        classifier("ollama", "").classify(new Request("What about its cast?", null, history));
         var capture = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
         verify(http).send(anyString(), anyString(), capture.capture(), anyMap());
         var messages = capture.getValue().path("messages");
@@ -82,8 +111,7 @@ class ModelClassifierTest {
         assertThat(context.get(0).path("content").asString()).startsWith("16").hasSize(256);
         assertThat(context.get(3).path("content").asString()).startsWith("19").hasSize(256);
         assertThat(content)
-                .contains(
-                        "\nLatest question: What about its producers?\nCall exactly one routing tool");
+                .contains("\nLatest question: What about its cast?\nCall exactly one routing tool");
     }
 
     @Test

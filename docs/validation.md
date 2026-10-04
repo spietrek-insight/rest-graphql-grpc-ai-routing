@@ -1,5 +1,16 @@
 # Validation record — 2026-09-26
 
+## Character cast and flight crew — October 4, 2026
+
+- Replaced producers with 18 fictional characters across six films; no actor names are in the seed or API responses.
+- Backend: 35 tests passed, including real REST/GraphQL/gRPC crew responses, film isolation, missing evidence, immutable references, and bounded model targets. Formatting passed.
+- Frontend: 34 tests passed; lint, formatting and production build passed. Root launcher tests: 5 passed.
+- Built and deployed frontend/backend images to Rancher Desktop; backend health passed.
+- Deployed smoke checks: 8 presenter cases and 9 live Ollama cases passed. They cover film cast, Luke Skywalker lookup/appearances, Falcon crews in A New Hope and Return of the Jedi, missing X-wing crew coverage, three gRPC snapshots, and the contextual follow-up “Who flew it in A New Hope?”
+- Browser: the GraphQL suggestion returned Han Solo (pilot) and Chewbacca (co-pilot), with official source URLs, using Auto/Ollama. The observed request took 5,386 ms; this is a single request observation, not a benchmark. The field guide displayed 18 characters, with no browser errors or warnings.
+- The local model requires initial preparation after the routing schema changes; startup warmup primes it. Existing benchmark JSON files describe the previous dataset and were not rewritten.
+- Verified crew coverage is deliberately limited to A New Hope and the Battle of Endor. Missing assignments produce an explicit coverage-gap answer.
+
 ## Projection readability — 2026-10-04
 
 - Consolidated text into dark primary, secondary, and muted colors, retaining pale surfaces and distinct blue, purple/pink, and amber protocol identities. Increased small captions to at least 11 px, chat/composer text to 14 px, and inspector payloads to 13 px. Strengthened keyboard focus and selected-state indicators.

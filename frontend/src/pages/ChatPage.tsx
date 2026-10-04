@@ -206,7 +206,7 @@ export function ChatPage() {
               <span>Discover what connects.</span>
             </h1>
             <p>
-              Explore a universe of starships, films, and producers.
+              Explore a universe of starships, films, and cast.
               <br />
               Let AI choose the route. See every request along the way.
             </p>

@@ -39,11 +39,35 @@ public class TrackerService extends StarshipTrackerGrpc.StarshipTrackerImplBase 
                                                 ship.films().stream()
                                                         .map(Catalog.Film::title)
                                                         .toList())
-                                        .addAllProducers(
+                                        .addAllCast(
                                                 ship.films().stream()
-                                                        .flatMap(f -> f.producers().stream())
-                                                        .map(Catalog.Producer::name)
+                                                        .flatMap(f -> f.cast().stream())
+                                                        .map(Catalog.CastMember::name)
                                                         .distinct()
+                                                        .toList())
+                                        .addAllCrew(
+                                                ship.crew().stream()
+                                                        .map(
+                                                                c ->
+                                                                        FlightCrew.newBuilder()
+                                                                                .setFilmId(
+                                                                                        c.filmId())
+                                                                                .setFilmTitle(
+                                                                                        c
+                                                                                                .filmTitle())
+                                                                                .setRole(c.role())
+                                                                                .setSource(
+                                                                                        c.source())
+                                                                                .setMember(
+                                                                                        CastPerson
+                                                                                                .newBuilder()
+                                                                                                .setId(
+                                                                                                        c.member()
+                                                                                                                .id())
+                                                                                                .setName(
+                                                                                                        c.member()
+                                                                                                                .name()))
+                                                                                .build())
                                                         .toList()));
                     }
                     response.onNext(snapshot.build());

@@ -30,7 +30,8 @@ public final class ChatModels {
             JsonNode classification) {
         public Decision {
             if (target == null
-                    || !target.matches("all|none|ship:(?:[1-9]|1[0-9])|film:[1-6]|producer:[1-4]"))
+                    || !target.matches(
+                            "all|none|ship:(?:[1-9]|1[0-9])|film:[1-6]|cast:(?:[1-9]|1[0-8])|crew:(?:[1-9]|1[0-9]):(?:[1-6]|all)"))
                 throw new IllegalArgumentException("Model returned an unsupported target.");
         }
     }

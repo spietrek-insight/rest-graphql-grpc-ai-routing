@@ -22,18 +22,17 @@ class ProtocolIntegrationTest {
     @LocalServerPort int port;
 
     @Test
-    void standaloneFilmAndUnlinkedProducerLookupsUseRealRestResources() {
-        var producer =
+    void standaloneFilmAndCastLookupsUseRealRestResources() {
+        var character =
                 service.chat(
-                        new Request("Tell me about George Lucas", Protocol.REST, List.of()),
+                        new Request("Tell me about Luke Skywalker", Protocol.REST, List.of()),
                         e -> {});
-        assertThat(producer.answer()).contains("George Lucas", "producer #4");
-        assertThat(producer.insight().exchange().operation())
-                .isEqualTo("GET /api/catalog/producers/4");
+        assertThat(character.answer()).contains("Luke Skywalker", "character");
+        assertThat(character.insight().exchange().operation()).isEqualTo("GET /api/catalog/cast/1");
         var film =
                 service.chat(
                         new Request("Tell me about A New Hope", Protocol.REST, List.of()), e -> {});
-        assertThat(film.answer()).contains("A New Hope", "Gary Kurtz", "Rick McCallum");
+        assertThat(film.answer()).contains("A New Hope", "Luke Skywalker", "Han Solo");
     }
 
     @Test
@@ -58,7 +57,8 @@ class ProtocolIntegrationTest {
                     service.chat(
                             new Request("Tell me about the X-wing", protocol, List.of()),
                             events::add);
-            assertThat(result.answer()).contains("X-wing", "The Empire Strikes Back", "Gary Kurtz");
+            assertThat(result.answer())
+                    .contains("X-wing", "The Empire Strikes Back", "Luke Skywalker");
             assertThat(result.insight().exchange().responseBytes()).isPositive();
             assertThat(result.insight().timings().routingMs()).isNotNegative();
             assertThat(result.insight().timings().totalMs())
@@ -81,7 +81,7 @@ class ProtocolIntegrationTest {
                 List.of(
                         "/api/status",
                         "/api/catalog/films",
-                        "/api/catalog/producers",
+                        "/api/catalog/cast",
                         "/api/catalog/starships/all",
                         "/actuator/health")) {
             assertThat(get(path).statusCode()).isEqualTo(200);
@@ -91,7 +91,7 @@ class ProtocolIntegrationTest {
                 jsonHttp.send(
                         "POST",
                         url("/graphql"),
-                        mapper.readTree("{\"query\":\"{ films { title } producers { name } }\"}"),
+                        mapper.readTree("{\"query\":\"{ films { title } cast { name } }\"}"),
                         Map.of());
         assertThat(graphql.body().path("data").path("films")).hasSize(6);
         assertThat(post("/api/chat", "{\"message\":\" \",\"history\":[]}").statusCode())

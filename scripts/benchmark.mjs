@@ -6,7 +6,7 @@ const rounds = Number(process.env.BENCHMARK_ROUNDS ?? 3);
 if (!Number.isInteger(rounds) || rounds < 1 || rounds > 100) throw new Error('BENCHMARK_ROUNDS must be 1–100');
 const cases = [
   ['Tell me about the Millennium Falcon', 'REST', 'ship:5'],
-  ['Which starships appear in A New Hope, and who produced it?', 'GRAPHQL', 'film:1'],
+  ['Which starships appear in A New Hope, and who is in its cast?', 'GRAPHQL', 'film:1'],
   ['Track the Millennium Falcon', 'GRPC', 'ship:5'],
 ];
 async function measure([message, protocol, target], history = []) {
@@ -44,10 +44,10 @@ const summary = Object.fromEntries(cases.map(([, protocol]) => {
 const followups = [];
 for (let round = 1; round <= rounds; round++) {
   followups.push({ round, ...await measure(
-    ['Which films does it appear in and who produced them?', 'GRAPHQL', 'ship:5'],
+    ['Which films does it appear in and who is in their cast?', 'GRAPHQL', 'ship:5'],
     [
       { role: 'user', content: 'Tell me about the Millennium Falcon' },
-      { role: 'assistant', content: 'Millennium Falcon — Maximum speed: 1050; length: 34.37 (source units unspecified). Appears in A New Hope, The Empire Strikes Back, Return of the Jedi. Producer: Gary Kurtz, Rick McCallum.' },
+      { role: 'assistant', content: 'Millennium Falcon — Maximum speed: 1050; length: 34.37 (source units unspecified). Appears in A New Hope, The Empire Strikes Back, Return of the Jedi. Selected cast: Han Solo, Chewbacca.' },
     ],
   ) });
 }

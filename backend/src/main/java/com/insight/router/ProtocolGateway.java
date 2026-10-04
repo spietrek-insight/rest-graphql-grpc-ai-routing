@@ -45,8 +45,8 @@ public class ProtocolGateway {
         JsonHttp.Reply reply;
         if (decision.protocol() == Protocol.REST) {
             String path =
-                    decision.target().startsWith("producer:")
-                            ? "/api/catalog/producers/" + decision.target().substring(9)
+                    decision.target().startsWith("cast:")
+                            ? "/api/catalog/cast/" + decision.target().substring(5)
                             : decision.target().startsWith("film:")
                                     ? "/api/catalog/films/" + decision.target().substring(5)
                                     : "/api/catalog/starships/" + decision.target();
@@ -61,7 +61,7 @@ public class ProtocolGateway {
                     mapper.valueToTree(
                             Map.of(
                                     "query",
-                                    "query ExploreStarships($target: String!) { starships(target: $target) { id name maxSpeed length films { title producers { name } } } }",
+                                    "query ExploreStarships($target: String!) { starships(target: $target) { id name maxSpeed length films { id title cast { id name } } crew { filmId filmTitle role source member { id name } } } films(target: $target) { id title cast { id name } } }",
                                     "variables",
                                     Map.of("target", decision.target())));
             reply = http.send("POST", endpoint, request, Map.of());

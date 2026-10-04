@@ -87,7 +87,7 @@ export function ChatInput({
                   value="GRAPHQL"
                   className="select-graphql"
                   icon={<Braces size={17} />}
-                  description="Explore connected ships, films and producers."
+                  description="Explore connected ships, films and cast."
                 >
                   Force GraphQL · next question
                 </SelectItem>

@@ -20,7 +20,7 @@ The native gRPC contract is bidirectional. The client sends three paced snapshot
 
 ## Data continuity
 
-The actual original repository supersedes the illustrative two-ship PRD dataset. See dataset-provenance.md. Mutations and compatibility with the previous API's exact paths are intentionally outside the new conversational read-only scope. Scalar fields, identities and many-to-many relationships are retained. The original application used database-backed entities; immutable startup data removes local database configuration for a fixed conference demo.
+The actual original repository supersedes the illustrative two-ship PRD dataset. See dataset-provenance.md. Mutations and compatibility with the previous API's exact paths are intentionally outside the new conversational read-only scope. Ship scalar fields, identities and ship/film relationships are retained. The old producer layer is replaced with character cast and explicit ship/film flight-crew assignments. The seed references IDs rather than duplicating film and character records. Missing flight-crew evidence is reported as a coverage gap, never inferred from a film appearance. The original application used database-backed entities; immutable startup data removes local database configuration for a fixed conference demo.
 
 ## Frontend ownership
 

@@ -281,7 +281,7 @@ These verify live routes and record warmup, response timing, and contextual foll
 ## Try it
 
 - **REST:** “Tell me about the Millennium Falcon.”
-- **GraphQL:** “Which starships appear in A New Hope, and who produced it?”
+- **GraphQL:** “Who flew the Millennium Falcon in A New Hope?”
 - **gRPC:** “Track the Millennium Falcon.”
 
 Auto uses genuine model tool calling with Ollama or typed decisions with Jev or CLM. There is no hidden keyword-based automatic fallback. If a provider is unavailable or returns invalid output, the UI displays an error; choose a presenter override to continue. Overrides bypass the model and use a deliberately simple name matcher for arguments. They apply to one question and then reset to Auto.
@@ -300,7 +300,11 @@ See [architecture decisions](docs/architecture.md), [dataset provenance](docs/da
 
 ## Dataset
 
-The original [Devnexus repository](https://github.com/chetan-galgali/devnexus-api-comparison) supplies **19 ships, 6 films and 4 producers**, with their original IDs, numeric fields and relationships. It is authoritative over the PRD’s illustrative Enterprise/Star Trek records, which are absent from the original. `backend/src/main/resources/catalog.json` is the single canonical seed; `docs/original-data.sql` records its source. Original credits are preserved, not fact-corrected. No external database is required.
+The demo contains **19 ships, 6 films and 18 characters**. Cast means characters such as Luke Skywalker, not actors. Original ship values and film links come from the [Devnexus repository](https://github.com/chetan-galgali/devnexus-api-comparison); selected character appearances and four verified Falcon crew assignments enrich them. The cast and crew coverage is partial. `backend/src/main/resources/catalog.json` is the normalized canonical seed; no external database is required. See [dataset provenance](docs/dataset-provenance.md) for sources, limitations and extension steps.
+
+Try “Who flew the Millennium Falcon in A New Hope?” for Han Solo and Chewbacca, or “Who flew the Millennium Falcon in Return of the Jedi?” for Lando Calrissian and Nien Nunb at Endor. “Which films feature Luke Skywalker?” explores character appearances. Crew answers use explicit ship/film relationships; they never treat every film character as a pilot. Missing crew data is reported as a gap.
+
+After changing the seed, run `npm run rancher:up`. Verify all transports with `npm run smoke`, then verify live model routing with `npm run smoke:ai`. The producer API has been replaced by `/api/catalog/cast` and GraphQL `cast`/`crew` fields.
 
 ## Tests and code quality
 

@@ -28,9 +28,9 @@ class CatalogController {
         return catalog.film(id);
     }
 
-    @GetMapping("/producers/{id}")
-    Catalog.Producer producer(@PathVariable String id) {
-        return catalog.producer(id);
+    @GetMapping("/cast/{id}")
+    Catalog.CastMember castMember(@PathVariable String id) {
+        return catalog.castMember(id);
     }
 
     @GetMapping("/films")
@@ -38,9 +38,9 @@ class CatalogController {
         return catalog.films();
     }
 
-    @GetMapping("/producers")
-    List<Catalog.Producer> producers() {
-        return catalog.producers();
+    @GetMapping("/cast")
+    List<Catalog.CastMember> cast() {
+        return catalog.cast();
     }
 }
 
@@ -58,12 +58,12 @@ class CatalogGraphqlController {
     }
 
     @QueryMapping
-    List<Catalog.Film> films() {
-        return catalog.films();
+    List<Catalog.Film> films(@Argument String target) {
+        return catalog.films(target);
     }
 
     @QueryMapping
-    List<Catalog.Producer> producers() {
-        return catalog.producers();
+    List<Catalog.CastMember> cast() {
+        return catalog.cast();
     }
 }

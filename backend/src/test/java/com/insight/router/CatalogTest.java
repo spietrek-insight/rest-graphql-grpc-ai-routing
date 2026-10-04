@@ -12,26 +12,26 @@ class CatalogTest {
     final Catalog catalog = new Catalog(JsonMapper.builder().build());
 
     @Test
-    void missingFilmAndProducerIdsAreRejected() {
-        assertThatThrownBy(() -> catalog.producer("99"))
+    void missingFilmAndCastIdsAreRejected() {
+        assertThatThrownBy(() -> catalog.castMember("99"))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> catalog.film("99")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void preservesOriginalLinksAndUnlinkedProducers() {
+    void preservesShipsAndLinksCharactersToFilms() {
         assertThat(catalog.starships("film:1")).hasSize(5);
-        assertThat(catalog.starships("producer:2")).hasSize(19);
-        assertThat(catalog.starships("producer:4")).isEmpty();
+        assertThat(catalog.starships("cast:6")).hasSize(19);
+        assertThat(catalog.starships("cast:1")).hasSize(8);
         assertThat(catalog.starships("none")).isEmpty();
         var falcon = catalog.starships("ship:5").getFirst();
         assertThat(falcon.maxSpeed()).isEqualTo(1050);
         assertThat(falcon.length()).isEqualTo(34.37);
         assertThat(falcon.films()).extracting(Catalog.Film::id).containsExactly("1", "2", "3");
-        assertThat(catalog.films().get(2).producers()).hasSize(2);
+        assertThat(catalog.films().get(2).cast()).hasSize(12);
         assertThatThrownBy(() -> catalog.starships("all").clear())
                 .isInstanceOf(UnsupportedOperationException.class);
-        assertThat(catalog.manualTarget("What did Rick McCallum produce?")).isEqualTo("producer:2");
+        assertThat(catalog.manualTarget("Which films feature Luke Skywalker?")).isEqualTo("cast:1");
         assertThat(catalog.manualTarget("Enterprise")).isEqualTo("none");
     }
 
@@ -43,12 +43,12 @@ class CatalogTest {
                                 .getFirst()
                                 .films()
                                 .getFirst()
-                                .producers()
+                                .cast()
                                 .getFirst()
                                 .name())
-                .isEqualTo("Gary Kurtz");
+                .isEqualTo("Luke Skywalker");
         assertThat(catalog.films()).hasSize(6);
-        assertThat(catalog.producers()).hasSize(4);
+        assertThat(catalog.cast()).hasSize(18);
         assertThatThrownBy(() -> catalog.starships("bad"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
