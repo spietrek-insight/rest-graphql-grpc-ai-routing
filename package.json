@@ -1,0 +1,41 @@
+{
+  "name": "protocol-studio-project",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  },
+  "scripts": {
+    "setup": "npm --prefix frontend ci",
+    "doctor": "node scripts/project.mjs doctor",
+    "java:install": "node scripts/project.mjs install-java",
+    "ollama:install": "node scripts/project.mjs install-ollama",
+    "ollama:start": "node scripts/project.mjs ollama serve",
+    "ollama:pull": "node scripts/project.mjs ollama pull",
+    "ollama:list": "node scripts/project.mjs ollama list",
+    "dev": "node scripts/project.mjs dev",
+    "dev:backend": "node scripts/project.mjs backend spring-boot:run",
+    "dev:frontend": "npm --prefix frontend run dev -- --strictPort",
+    "check:frontend": "npm --prefix frontend run lint && npm --prefix frontend run format:check && npm --prefix frontend test && npm --prefix frontend run build",
+    "check:backend": "node scripts/project.mjs backend verify",
+    "test:scripts": "node --test scripts/project.test.mjs",
+    "test": "npm run test:scripts && npm run check:frontend && npm run check:backend",
+    "smoke": "node scripts/project.mjs smoke",
+    "smoke:ai": "node scripts/project.mjs smoke --ai",
+    "docker:up": "docker compose up --build -d",
+    "docker:start": "docker compose up -d --no-build",
+    "docker:stop": "docker compose stop",
+    "docker:down": "docker compose down",
+    "docker:status": "docker compose ps -a",
+    "docker:logs": "docker compose logs -f --tail=100",
+    "docker:model": "docker compose logs -f --tail=20 model-init",
+    "rancher:up": "docker --context rancher-desktop compose up --build -d",
+    "rancher:start": "docker --context rancher-desktop compose up -d --no-build",
+    "rancher:stop": "docker --context rancher-desktop compose stop",
+    "rancher:down": "docker --context rancher-desktop compose down",
+    "rancher:status": "docker --context rancher-desktop compose ps -a",
+    "rancher:logs": "docker --context rancher-desktop compose logs -f --tail=100",
+    "rancher:model": "docker --context rancher-desktop compose logs -f --tail=20 model-init"
+  }
+}

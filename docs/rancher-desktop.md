@@ -1,5 +1,7 @@
 # Run Protocol Studio in Rancher Desktop
 
+For first-time installation and complete native, Docker, and hybrid walkthroughs, start with the [README](../README.md#choose-how-to-run). Root shortcuts are available without a root dependency install: `npm run rancher:up`, `rancher:start`, `rancher:stop`, `rancher:status`, `rancher:logs`, and `rancher:model`. The direct Docker commands below work without Node/npm.
+
 Start Rancher Desktop and use its **dockerd (moby)** container engine. Kubernetes is not required. Run the commands below from the repository root.
 
 ## Start or update

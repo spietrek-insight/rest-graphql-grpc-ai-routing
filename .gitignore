@@ -4,6 +4,7 @@ coverage/
 target/
 .env*
 !.env.example
+!.env.native.example
 .DS_Store
 .playwright/
 *.tsbuildinfo
