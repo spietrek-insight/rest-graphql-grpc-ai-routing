@@ -7,6 +7,7 @@ import {
 import { Braces, ChevronRight, LoaderCircle, Maximize2, User } from 'lucide-react';
 import type { ChatMessage, Insight } from '@/types';
 import { ProtocolBadge } from '../ProtocolBadge';
+import { ProtocolReason } from '../ProtocolReason';
 import { ResponseDialog } from '../ResponseDialog';
 export function MessageBubble({
   message,
@@ -25,6 +26,7 @@ export function MessageBubble({
           <strong>{message.role === 'assistant' ? 'Protocol Studio' : 'You'}</strong>
           {message.insight && <ProtocolBadge protocol={message.insight.decision.protocol} />}
         </div>
+        {message.insight && <ProtocolReason decision={message.insight.decision} />}
         <div className="message-content">{message.content}</div>
         {message.insight && (
           <div className="message-actions">

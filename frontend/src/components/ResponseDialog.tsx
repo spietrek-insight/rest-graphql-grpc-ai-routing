@@ -2,6 +2,7 @@ import { useState, type ReactElement } from 'react';
 import { Check, Copy, FileJson } from 'lucide-react';
 import type { Insight } from '@/types';
 import { ProtocolBadge } from './ProtocolBadge';
+import { ProtocolReason } from './ProtocolReason';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
 
@@ -25,7 +26,7 @@ export function ResponseDialog({
   return (
     <Dialog onOpenChange={() => setCopyStatus('idle')}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="response-details-dialog">
         <header className="response-dialog-header">
           <div className="response-dialog-eyebrow">
             <FileJson size={16} /> CAPTURED RESPONSE
@@ -45,6 +46,7 @@ export function ResponseDialog({
             {copyStatus === 'copied' ? 'Copied' : 'Copy response'}
           </Button>
         </div>
+        <ProtocolReason decision={insight.decision} />
         <pre className="response-dialog-payload" tabIndex={0} aria-label="Response body">
           <code>{response}</code>
         </pre>
