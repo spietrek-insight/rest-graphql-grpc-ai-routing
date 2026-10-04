@@ -24,7 +24,7 @@ On Apple Silicon, native Ollama is usually more responsive than CPU inference in
 
 ## Develop without containers
 
-Prerequisites: Java 21, Node.js 22.12+ and Ollama. Maven is downloaded automatically by the committed wrapper.
+Prerequisites: Java 21, Node.js 22.22.2+ (within Node 22) and Ollama. Node 24.15+ and Node 26+ are also supported by the frontend tooling. Maven is downloaded automatically by the committed wrapper.
 
 ```sh
 ollama pull qwen3:4b-instruct-2507-q4_K_M

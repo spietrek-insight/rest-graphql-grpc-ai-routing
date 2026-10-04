@@ -3,7 +3,7 @@ WORKDIR /workspace
 COPY package*.json .npmrc ./
 RUN npm ci
 COPY . .
-RUN npm run lint && npm test && npm run build
+RUN npm run lint && npm run format:check && npm test && npm run build
 FROM nginxinc/nginx-unprivileged:1.28-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/dist /usr/share/nginx/html

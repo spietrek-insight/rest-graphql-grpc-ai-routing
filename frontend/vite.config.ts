@@ -5,7 +5,15 @@ import { fileURLToPath, URL } from 'node:url';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  build: { rollupOptions: { output: { manualChunks: { assistant: ['@assistant-ui/react'] } } } },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: 'assistant', test: /node_modules\/@assistant-ui\// }],
+        },
+      },
+    },
+  },
   server: { proxy: { '/api': { target: 'http://localhost:8080', changeOrigin: true } } },
   test: {
     environment: 'jsdom',

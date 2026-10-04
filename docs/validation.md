@@ -1,5 +1,42 @@
 # Validation record — 2026-09-26
 
+## Frontend dependency upgrade — 2026-10-04
+
+Reviewed the frontend's single package manifest and lockfile against npm's stable releases. Updated every direct dependency declaration to the latest compatible release; packages already current remain unchanged. The lockfile records the complete resolved tree.
+
+| Package group | Verified versions |
+| --- | --- |
+| React / React DOM / corresponding types | 19.3.0 |
+| assistant-ui | 0.15.23 |
+| Radix Dialog / Select / Slot | 1.1.23 / 2.3.7 / 1.3.3 |
+| Lucide | 1.52.0 |
+| Tailwind / Vite integration | 4.3.3 |
+| Tailwind Merge / Zustand | 3.7.0 / 5.0.15 |
+| Vite / React plugin | 8.3.2 / 6.1.1 |
+| Vitest / V8 coverage | 5.0.3 |
+| ESLint / typescript-eslint | 10.12.0 / 8.71.0 |
+| React Hooks / React Refresh lint plugins | 7.1.1 / 0.5.7 |
+| jsdom / jest-dom | 30.1.2 / 7.0.1 |
+| TypeScript / Node types | 6.0.3 / 22.20.5 |
+
+Compatibility decisions:
+
+- TypeScript is constrained to `~6.0.3`: the current typescript-eslint package declares support for TypeScript `>=4.8.4 <6.1.0`, so TypeScript 7.0.2 would produce an unsupported dependency tree. Node types use the newest Node 22 release to match the Docker and CI runtime, rather than exposing Node 26 APIs. These are the only two packages reported by the final `npm outdated` check, and both are at their newest allowed versions.
+- Replaced `legacy-peer-deps=true` with explicit peer and engine validation. The frontend now requires Node `^22.22.2 || ^24.15.0 || >=26.0.0`, matching jsdom's runtime requirement.
+- Migrated the assistant bundle from the removed Rollup object-form `manualChunks` to Rolldown `codeSplitting`, following the [Vite 8 migration guide](https://vite.dev/guide/migration.html). Removed `baseUrl` while preserving the relative alias mapping, following the [TypeScript 6 migration notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html). Reviewed the [Vitest 5](https://vitest.dev/guide/migration/) and [ESLint 10](https://eslint.org/docs/latest/use/migrate-to-10.0.0) migration guides; existing tests and lint configuration pass without weakening rules.
+- Docker builds now enforce the same formatting check as CI, in addition to lint, coverage tests, and production compilation.
+
+Verification:
+
+- Baseline and upgraded frontend: all 34 tests across 8 files passed. Coverage remains 97.82% lines, 96.42% branches, 97.11% statements, and 95% functions; all existing 80% gates remain enabled.
+- Clean `npm ci` and `npm ls --all` passed with strict peer checks. The first native clean-install attempt encountered npm's `ENOTEMPTY` removal error; a retry completed successfully. No peer bypasses or forced resolutions were used.
+- Full npm audit, including development dependencies: zero reported vulnerabilities at verification time.
+- A fresh Linux ARM64 frontend Docker build passed installation, lint, formatting, tests, coverage, and compilation. Deployed using the `rancher-desktop` Docker context; frontend HTTP 200 and backend health `UP` verified.
+- All three presenter override routes and all three automatic Ollama routes passed through `http://localhost:3000`; each gRPC check delivered three snapshots.
+- Browser verified the production bundle loads, the protocol selector opens and selects GraphQL, a live GraphQL answer renders, the override resets to Auto, and the full response dialog opens and closes. No browser console warnings or errors were reported during these checks.
+
+## Earlier verification
+
 - Frontend: 29 Vitest tests passed. Line coverage 97.79%; branch coverage 95.89%; function coverage 94.93%. Source thresholds are enforced at 80%.
 - Backend: 25 JUnit tests passed, including real REST, GraphQL and bidirectional gRPC integration tests, bounded classification context and startup warmup. JaCoCo line coverage 96.26%; branch coverage 96.36%. Source thresholds are enforced at 80%.
 - Response dialog: browser verified a full GraphQL payload in the scrollable modal. Unit tests cover both entry points, exact response content, copying, clipboard failure, Escape dismissal and focus restoration.
