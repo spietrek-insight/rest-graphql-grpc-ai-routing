@@ -1,5 +1,14 @@
 # Validation record — 2026-09-26
 
+## Projection readability — 2026-10-04
+
+- Consolidated text into dark primary, secondary, and muted colors, retaining pale surfaces and distinct blue, purple/pink, and amber protocol identities. Increased small captions to at least 11 px, chat/composer text to 14 px, and inspector payloads to 13 px. Strengthened keyboard focus and selected-state indicators.
+- Targeted the [WCAG enhanced text contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-enhanced.html) threshold of 7:1 for enabled text. Browser measurements use computed foreground/background colors, composited translucent surfaces, and conservative gradient stops; they are not a full accessibility certification or a physical projector measurement.
+- Representative ratios before → after: chat text 4.92 → 10.38; request timing 2.22 → 8.70; connection status 3.01 → 8.70; GraphQL badge 3.23 → 7.37.
+- Browser checks covered the welcome page, a live GraphQL response and inspector, the protocol menu, response dialog, and AI preferences. No measured enabled text fell below 7:1; the lowest measured ratio was 7.37:1. Disabled controls retain their subdued appearance.
+- Verified layouts at 1280×720 and 390×844 with no horizontal page overflow. The composer stays inside the viewport; the welcome area and sidebar scroll when needed. Short desktop displays omit the decorative welcome emblem/footer to leave room for prompts and input.
+- Production Docker build passed lint, formatting, all 34 tests, coverage gates, and compilation. Keep room lighting, projector calibration, display size, and audience distance in mind when doing the final venue check; browser contrast alone cannot establish physical projection legibility.
+
 ## Frontend dependency upgrade — 2026-10-04
 
 Reviewed the frontend's single package manifest and lockfile against npm's stable releases. Updated every direct dependency declaration to the latest compatible release; packages already current remain unchanged. The lockfile records the complete resolved tree.
