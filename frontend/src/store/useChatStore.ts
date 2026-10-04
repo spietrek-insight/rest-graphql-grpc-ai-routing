@@ -1,14 +1,15 @@
 import { create, type StateCreator } from 'zustand';
-import type { ChatMessage, Decision, Insight, Override } from '@/types';
+import type { ChatMessage, Decision, Insight, Override, TrackSnapshot } from '@/types';
 interface ConversationSlice {
   messages: ChatMessage[];
   busy: boolean;
   error: string | null;
-  snapshots: unknown[];
+  snapshots: TrackSnapshot[];
   append: (message: ChatMessage) => void;
   setBusy: (busy: boolean) => void;
+  upsert: (message: ChatMessage) => void;
   setError: (error: string | null) => void;
-  addSnapshot: (value: unknown) => void;
+  addSnapshot: (value: TrackSnapshot) => void;
 }
 interface ProtocolSlice {
   override: Override;
@@ -29,6 +30,12 @@ const conversationSlice: StateCreator<ChatState, [], [], ConversationSlice> = (s
   error: null,
   snapshots: [],
   append: (message) => set((s) => ({ messages: [...s.messages, message] })),
+  upsert: (message) =>
+    set((s) => ({
+      messages: s.messages.some((m) => m.id === message.id)
+        ? s.messages.map((m) => (m.id === message.id ? message : m))
+        : [...s.messages, message],
+    })),
   setBusy: (busy) => set({ busy, ...(busy ? { snapshots: [], error: null } : {}) }),
   setError: (error) => set({ error }),
   addSnapshot: (value) => set((s) => ({ snapshots: [...s.snapshots, value] })),

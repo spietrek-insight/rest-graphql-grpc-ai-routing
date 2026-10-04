@@ -11,6 +11,7 @@ services:
     build: ./backend
     environment:
       AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      DEMO_FLIGHT_INTERVAL_MS: ${DEMO_FLIGHT_INTERVAL_MS:-2000}
       AI_WARMUP: ${AI_WARMUP:-true}
       AI_MODEL: ${AI_MODEL:-}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-}

@@ -16,7 +16,7 @@ export function CatalogGuide({ onClose }: { onClose: () => void }) {
       </h1>
       <p>
         One shared dataset powers every protocol. Ask for a resource, explore its relationships, or
-        watch repeated snapshots.
+        watch a simulated Falcon flight.
       </p>
       <div className="catalog-grid">
         <div>
@@ -51,9 +51,11 @@ export function CatalogGuide({ onClose }: { onClose: () => void }) {
         <strong>Made for a live demo</strong>
         <p>
           Auto mode asks the configured model to choose a protocol. The input’s protocol selector
-          overrides the next question only, without contacting a model. gRPC streams real catalog
-          snapshots; vessel telemetry is not simulated as live data. Answers are composed from
-          returned records.
+          overrides the next question only, without contacting a model. The Falcon flight uses one
+          gRPC subscription for 21 updates over about 40 seconds. Location, pilot handoffs and an
+          alert update in the chat automatically. The flight is clearly labeled fiction, separate
+          from documented film crew. Stop at any time or replay the same scenario. Other targets
+          return catalog data only.
         </p>
         <p>
           Original ship records are enriched with selected cast for all six films. Cast means

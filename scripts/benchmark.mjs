@@ -15,10 +15,30 @@ async function measure([message, protocol, target], history = []) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, history, provider }),
-    signal: AbortSignal.timeout(150_000),
+    signal: AbortSignal.timeout(250_000),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const events = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
+  const events = [];
+  let firstSnapshotMs = null;
+  let buffer = '';
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  function consume(line) {
+    if (!line.trim()) return;
+    const event = JSON.parse(line);
+    if (event.type === 'snapshot' && firstSnapshotMs === null) firstSnapshotMs = Math.round(performance.now() - start);
+    events.push(event);
+  }
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += value;
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      lines.forEach(consume);
+    }
+    consume(buffer);
+  } finally { reader.releaseLock(); }
   const wallMs = Math.round(performance.now() - start);
   const error = events.find(event => event.type === 'error');
   if (error) throw new Error(error.data.message);
@@ -26,10 +46,10 @@ async function measure([message, protocol, target], history = []) {
   if (insight?.decision.protocol !== protocol || insight?.decision.target !== target) {
     throw new Error(`Unexpected route: ${JSON.stringify(insight?.decision)}`);
   }
-  if (protocol === 'GRPC' && events.filter(event => event.type === 'snapshot').length !== 3) {
-    throw new Error('Expected three live snapshots');
+  if (protocol === 'GRPC' && events.filter(event => event.type === 'snapshot').length !== 21) {
+    throw new Error('Expected 21 simulated flight updates');
   }
-  return { protocol, target, wallMs, ...insight.timings, protocolMs: insight.exchange.durationMs };
+  return { protocol, target, wallMs, firstSnapshotMs, ...insight.timings, protocolMs: insight.exchange.durationMs };
 }
 const status = await fetch(`${base}/api/status`).then(response => response.json());
 const warmup = await measure(cases[0]);

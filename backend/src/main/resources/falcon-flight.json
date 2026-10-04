@@ -1,0 +1,198 @@
+{
+  "id": "falcon-demo-v1",
+  "title": "Falcon flight: Tatooine to Yavin 4",
+  "shipId": "5",
+  "origin": "Tatooine",
+  "destination": "Yavin 4",
+  "frames": [
+    {
+      "location": "Mos Eisley \u00b7 docking bay",
+      "phase": "Preflight",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Flight checks complete. Han Solo has the controls."
+    },
+    {
+      "location": "Mos Eisley \u00b7 docking bay",
+      "phase": "Preflight",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Departure clearance received."
+    },
+    {
+      "location": "Mos Eisley \u00b7 above the spaceport",
+      "phase": "Departure",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 180,
+      "shieldsPercent": 100,
+      "event": "Landing gear raised."
+    },
+    {
+      "location": "Tatooine \u00b7 upper atmosphere",
+      "phase": "Departure",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 650,
+      "shieldsPercent": 100,
+      "event": "Climbing above the atmosphere."
+    },
+    {
+      "location": "Tatooine \u00b7 orbital corridor",
+      "phase": "Departure",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 980,
+      "shieldsPercent": 100,
+      "event": "Orbit reached. Course set for Yavin 4."
+    },
+    {
+      "location": "Tatooine \u00b7 outer orbit",
+      "phase": "Crew handoff",
+      "pilotId": "5",
+      "coPilotId": "2",
+      "speedKph": 1050,
+      "shieldsPercent": 100,
+      "event": "Chewbacca takes the controls. Han checks navigation."
+    },
+    {
+      "location": "Tatooine \u00b7 outer orbit",
+      "phase": "Crew handoff",
+      "pilotId": "5",
+      "coPilotId": "2",
+      "speedKph": 1050,
+      "shieldsPercent": 100,
+      "event": "Chewbacca holds course while the jump is calculated."
+    },
+    {
+      "location": "Tatooine \u00b7 departure lane",
+      "phase": "Alert",
+      "pilotId": "5",
+      "coPilotId": "2",
+      "speedKph": 920,
+      "shieldsPercent": 82,
+      "event": "Sensor alert: debris ahead. Shields absorb a small impact."
+    },
+    {
+      "location": "Tatooine \u00b7 departure lane",
+      "phase": "Alert",
+      "pilotId": "5",
+      "coPilotId": "2",
+      "speedKph": 760,
+      "shieldsPercent": 86,
+      "event": "Avoidance maneuver in progress."
+    },
+    {
+      "location": "Tatooine \u00b7 clear space",
+      "phase": "Recovery",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 900,
+      "shieldsPercent": 92,
+      "event": "Han retakes the controls. Flight path clear."
+    },
+    {
+      "location": "Tatooine \u00b7 jump point",
+      "phase": "Recovery",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 1050,
+      "shieldsPercent": 100,
+      "event": "Shields restored. Hyperdrive ready."
+    },
+    {
+      "location": "Hyperspace corridor \u00b7 leg 1",
+      "phase": "Hyperspace",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Hyperspace jump confirmed. Sublight speed is not applicable."
+    },
+    {
+      "location": "Hyperspace corridor \u00b7 leg 2",
+      "phase": "Hyperspace",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Navigation checkpoint passed."
+    },
+    {
+      "location": "Hyperspace corridor \u00b7 leg 3",
+      "phase": "Hyperspace",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Destination beacon acquired."
+    },
+    {
+      "location": "Hyperspace corridor \u00b7 exit point",
+      "phase": "Hyperspace",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Preparing to return to normal space."
+    },
+    {
+      "location": "Yavin system \u00b7 outer approach",
+      "phase": "Approach",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 850,
+      "shieldsPercent": 100,
+      "event": "Hyperspace exit complete."
+    },
+    {
+      "location": "Yavin 4 \u00b7 orbital approach",
+      "phase": "Approach",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 600,
+      "shieldsPercent": 100,
+      "event": "Landing clearance confirmed."
+    },
+    {
+      "location": "Yavin 4 \u00b7 upper atmosphere",
+      "phase": "Approach",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 350,
+      "shieldsPercent": 100,
+      "event": "Beginning descent."
+    },
+    {
+      "location": "Yavin 4 \u00b7 landing approach",
+      "phase": "Landing",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 180,
+      "shieldsPercent": 100,
+      "event": "Landing gear lowered."
+    },
+    {
+      "location": "Yavin 4 \u00b7 above landing pad",
+      "phase": "Landing",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 40,
+      "shieldsPercent": 100,
+      "event": "Final approach. Chewbacca confirms the landing checklist."
+    },
+    {
+      "location": "Yavin 4 \u00b7 landing pad",
+      "phase": "Arrived",
+      "pilotId": "2",
+      "coPilotId": "5",
+      "speedKph": 0,
+      "shieldsPercent": 100,
+      "event": "Touchdown. Flight complete; engines powered down."
+    }
+  ]
+}

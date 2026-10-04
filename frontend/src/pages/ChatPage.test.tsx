@@ -156,3 +156,65 @@ it('honors CLM as the server default and displays its own description', async ()
   await userEvent.click(screen.getByText('Meet the Millennium Falcon'));
   expect(vi.mocked(sendChat).mock.calls[0][5]).toBe('clm');
 });
+
+it('updates one flight card while streaming, preserves stopped state, and ignores late updates', async () => {
+  const { flightSnapshot } = await import('@/test/fixtures');
+  let emit!: Parameters<typeof sendChat>[4];
+  let resolve!: () => void;
+  vi.mocked(sendChat).mockImplementation((_m, _o, _h, _s, events) => {
+    emit = events;
+    return new Promise<void>((r) => {
+      resolve = r;
+    });
+  });
+  render(<ChatPage />);
+  await userEvent.click(screen.getByText('Track the Millennium Falcon'));
+  act(() => {
+    emit({ type: 'decision', data: { ...insight.decision, protocol: 'GRPC' } });
+    emit({ type: 'snapshot', data: flightSnapshot });
+    emit({
+      type: 'snapshot',
+      data: {
+        ...flightSnapshot,
+        sequence: 2,
+        flight: { ...flightSnapshot.flight!, location: 'Tatooine orbit' },
+      },
+    });
+  });
+  expect(screen.getByText('Tatooine orbit')).toBeInTheDocument();
+  expect(useChatStore.getState().messages.filter((m) => m.role === 'assistant')).toHaveLength(1);
+  expect(sendChat).toHaveBeenCalledOnce();
+  await userEvent.click(screen.getByRole('button', { name: 'Stop response' }));
+  expect(screen.getByText('Stopped · last received state')).toBeInTheDocument();
+  act(() => {
+    emit({ type: 'snapshot', data: flightSnapshot });
+    resolve();
+  });
+  await waitFor(() => expect(useChatStore.getState().busy).toBe(false));
+  expect(screen.getByText('Tatooine orbit')).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Replay simulated flight' }));
+  expect(sendChat).toHaveBeenCalledTimes(2);
+  act(() => {
+    emit({ type: 'snapshot', data: flightSnapshot });
+    emit({ type: 'result', data: { answer: 'Simulated flight complete.', insight } });
+    resolve();
+  });
+  await screen.findByText('Flight complete');
+  expect(
+    screen.getAllByRole('region', { name: 'Simulated Millennium Falcon flight' }),
+  ).toHaveLength(2);
+});
+
+it('retains the last flight update when the connection fails', async () => {
+  const { flightSnapshot } = await import('@/test/fixtures');
+  vi.mocked(sendChat).mockImplementation(async (_m, _o, _h, _s, emit) => {
+    emit({ type: 'snapshot', data: flightSnapshot });
+    throw new Error('Connection ended before the answer arrived.');
+  });
+  render(<ChatPage />);
+  await userEvent.click(screen.getByText('Track the Millennium Falcon'));
+  expect(
+    await screen.findByText('Connection interrupted · last received state'),
+  ).toBeInTheDocument();
+  expect(screen.getByText('Mos Eisley · docking bay')).toBeInTheDocument();
+});

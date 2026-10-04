@@ -11,7 +11,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"router.warmup=false"})
+        properties = {"router.warmup=false", "demo.flight.interval-ms=20"})
 class CastCrewTest {
     @Autowired Catalog catalog;
     @Autowired ChatService service;
@@ -72,7 +72,7 @@ class CastCrewTest {
                     .doesNotContain("Lando", "Luke", "Leia", "Harrison", "Peter");
             assertThat(result.insight().decision().target()).isEqualTo("crew:5:1");
             if (protocol == Protocol.GRPC)
-                assertThat(events.stream().filter(e -> e.type().equals("snapshot"))).hasSize(3);
+                assertThat(events.stream().filter(e -> e.type().equals("snapshot"))).hasSize(1);
             var missing =
                     service.chat(
                             new Request("Who flew the X-wing in A New Hope?", protocol, List.of()),

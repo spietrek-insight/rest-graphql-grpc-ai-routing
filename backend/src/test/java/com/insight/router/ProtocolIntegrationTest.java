@@ -14,12 +14,52 @@ import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"router.warmup=false"})
+        properties = {"router.warmup=false", "demo.flight.interval-ms=20"})
 class ProtocolIntegrationTest {
     @Autowired ChatService service;
     @Autowired JsonMapper mapper;
     @Autowired JsonHttp jsonHttp;
     @LocalServerPort int port;
+
+    @Test
+    void oneSubscriptionStreamsACompleteChangingFlightAndCanReplayIt() {
+        for (int replay = 0; replay < 2; replay++) {
+            var events = new ArrayList<Event>();
+            var result =
+                    service.chat(
+                            new Request("Track the Millennium Falcon", Protocol.GRPC, List.of()),
+                            events::add);
+            var response = result.insight().exchange().response();
+            assertThat(result.insight().exchange().operation()).endsWith("/Watch");
+            assertThat(result.insight().exchange().request().path("target").asString())
+                    .isEqualTo("ship:5");
+            assertThat(events.stream().filter(e -> e.type().equals("snapshot"))).hasSize(21);
+            assertThat(response).hasSize(21);
+            var locations = new HashSet<String>();
+            var pilots = new HashSet<String>();
+            for (int i = 0; i < 21; i++) {
+                var update = response.get(i);
+                assertThat(update.path("sequence").asInt()).isEqualTo(i + 1);
+                assertThat(update.path("totalSnapshots").asInt()).isEqualTo(21);
+                assertThat(update.path("flight").path("simulated").asBoolean()).isTrue();
+                locations.add(update.path("flight").path("location").asString());
+                pilots.add(update.path("flight").path("pilot").path("name").asString());
+            }
+            assertThat(locations.size()).isGreaterThan(10);
+            assertThat(pilots).containsExactlyInAnyOrder("Han Solo", "Chewbacca");
+            assertThat(response.get(7).path("flight").path("shieldsPercent").asInt())
+                    .isLessThan(100);
+            assertThat(response.get(0).path("flight").path("progressPercent").asInt()).isZero();
+            assertThat(response.get(20).path("flight").path("progressPercent").asInt())
+                    .isEqualTo(100);
+            assertThat(result.answer())
+                    .contains(
+                            "Simulated flight complete",
+                            "Yavin 4",
+                            "21 updates",
+                            "not canon history");
+        }
+    }
 
     @Test
     void standaloneFilmAndCastLookupsUseRealRestResources() {
@@ -65,8 +105,8 @@ class ProtocolIntegrationTest {
                     .isGreaterThanOrEqualTo(result.insight().exchange().durationMs());
             assertThat(events.getFirst().type()).isEqualTo("decision");
             if (protocol == Protocol.GRPC) {
-                assertThat(events.stream().filter(e -> e.type().equals("snapshot"))).hasSize(3);
-                assertThat(result.insight().exchange().response()).hasSize(3);
+                assertThat(events.stream().filter(e -> e.type().equals("snapshot"))).hasSize(1);
+                assertThat(result.insight().exchange().response()).hasSize(1);
             }
         }
         assertThat(

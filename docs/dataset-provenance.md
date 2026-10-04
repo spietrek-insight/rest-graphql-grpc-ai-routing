@@ -41,3 +41,7 @@ To extend the seed, add a character under `cast`, link its ID under the film's `
 REST uses `/api/catalog/cast` and `/api/catalog/cast/{id}`. GraphQL exposes `cast`, film `cast`, and ship `crew`. Routing uses `cast:ID` and `crew:SHIP_ID:FILM_ID` (or `all` for the film). Old producer endpoints/fields are removed. Protobuf reserves the removed producer field number 5 and name; cast and crew use new fields 7 and 8. Regenerate clients from `catalog.proto` when upgrading.
 
 `docs/original-data.sql` and previously recorded benchmark JSON files remain historical evidence of the old dataset; they do not define the current catalog.
+
+## Simulated flight (2026-10-04)
+
+`backend/src/main/resources/falcon-flight.json` is authored fiction for a repeatable presentation. The Tatooine-to-Yavin 4 itinerary, current locations, pilot handoffs, debris alert, speed and shield values are scripted, not sourced Star Wars canon or live telemetry. Character names resolve against the curated catalog, but these scenario assignments never change documented film crew. Every flight payload carries `simulated: true` and a scenario ID; the chat card and final answer label the distinction. Historical GraphQL crew questions continue to use the separately sourced catalog.

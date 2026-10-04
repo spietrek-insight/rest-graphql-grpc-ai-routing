@@ -1738,3 +1738,220 @@ textarea {
     padding: 0 7px;
   }
 }
+
+/* Presentation flight card: high-contrast state, with no dependence on animation. */
+.flight-card {
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid #b9b0ca;
+  border-radius: 16px;
+  background: #faf8ff;
+  color: var(--text-primary);
+}
+.flight-title,
+.flight-route,
+.flight-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.flight-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #493276;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+.flight-title h3 {
+  font-size: 24px;
+  margin: 6px 0;
+  line-height: 1.25;
+}
+.flight-phase {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #e7def8;
+  color: #352153;
+  font-size: 14px;
+}
+.flight-fiction {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin: 4px 0 20px;
+}
+.flight-route {
+  font-weight: 700;
+  font-size: 14px;
+}
+.flight-card progress {
+  width: 100%;
+  height: 10px;
+  appearance: none;
+  border: 0;
+  background: #ddd5eb;
+  border-radius: 8px;
+  margin: 10px 0 18px;
+  overflow: hidden;
+}
+.flight-card progress::-webkit-progress-bar {
+  background: #ddd5eb;
+}
+.flight-card progress::-webkit-progress-value {
+  background: #4e35a0;
+}
+.flight-card progress::-moz-progress-bar {
+  background: #4e35a0;
+}
+.flight-readings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+.flight-location {
+  grid-column: 1 / -1;
+}
+.flight-readings dt {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.flight-readings dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.flight-location dd {
+  font-size: 22px;
+}
+.flight-event {
+  background: #ece6f6;
+  padding: 12px;
+  border-left: 4px solid #4e35a0;
+  color: #352153;
+  font-weight: 650;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 20px 0 16px;
+}
+.flight-alert {
+  background: #fff0d8;
+  border-color: #784517;
+  color: #57300e;
+}
+.flight-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.flight-log {
+  font-size: 12px;
+  margin-top: 16px;
+}
+.flight-log summary {
+  cursor: pointer;
+  font-weight: 650;
+  padding: 4px 0;
+}
+.flight-log summary:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.flight-log ol {
+  padding: 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.flight-log li {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  line-height: 1.5;
+}
+.flight-log li span {
+  min-width: 28px;
+  font-weight: 750;
+}
+.flight-card > .inspect-link {
+  margin-top: 14px;
+}
+@media (max-width: 600px) {
+  .flight-card {
+    padding: 14px;
+  }
+  .flight-title h3,
+  .flight-location dd {
+    font-size: 20px;
+  }
+  .flight-readings dd {
+    font-size: 17px;
+  }
+}
+.flight-presentation {
+  width: min(1000px, calc(100vw - 32px));
+  max-width: 1000px;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow-y: auto;
+  background: #faf8ff;
+}
+.flight-presentation .flight-card {
+  border: 0;
+  margin: 0;
+  padding: 28px 32px;
+}
+.flight-presentation .flight-title {
+  padding-right: 24px;
+}
+.flight-presentation .flight-title h3 {
+  font-size: 32px;
+}
+.flight-presentation .flight-label,
+.flight-presentation .flight-fiction {
+  font-size: 14px;
+}
+.flight-presentation .flight-route,
+.flight-presentation .flight-phase {
+  font-size: 18px;
+}
+.flight-presentation .flight-readings dd {
+  font-size: 26px;
+}
+.flight-presentation .flight-location dd {
+  font-size: 28px;
+}
+.flight-presentation .flight-readings dt,
+.flight-presentation .flight-status {
+  font-size: 14px;
+}
+.flight-presentation .flight-event {
+  font-size: 18px;
+}
+.flight-presentation .flight-log {
+  display: none;
+}
+.flight-presentation .inspect-link {
+  font-size: 16px;
+}
+@media (min-width: 700px) {
+  .flight-presentation .flight-readings {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .flight-presentation .flight-card {
+    padding: 22px 16px;
+  }
+  .flight-presentation .flight-title h3 {
+    font-size: 24px;
+  }
+  .flight-presentation .flight-readings dd,
+  .flight-presentation .flight-location dd {
+    font-size: 20px;
+  }
+}

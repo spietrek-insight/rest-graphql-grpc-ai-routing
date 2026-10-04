@@ -3,12 +3,40 @@ package com.insight.router;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.mock.web.MockHttpServletResponse;
 import tools.jackson.databind.json.JsonMapper;
 
 class ChatControllerTest {
+    @Test
+    void eachEventCommitsTheServletResponseEvenWhenSpringSuppressesBodyFlushes() throws Exception {
+        var response = new MockHttpServletResponse();
+        var service = mock(ChatService.class);
+        var controller =
+                new ChatController(
+                        service,
+                        new RouterProperties("ollama", "", "", "", ""),
+                        JsonMapper.builder().build());
+        when(service.chat(any(), any()))
+                .thenAnswer(
+                        invocation -> {
+                            java.util.function.Consumer<ChatModels.Event> send =
+                                    invocation.getArgument(1);
+                            send.accept(new ChatModels.Event("decision", "ready"));
+                            // Assert before chat returns: committing only the final result would
+                            // hide updates.
+                            assertThat(response.isCommitted()).isTrue();
+                            assertThat(response.getContentAsString()).contains("decision");
+                            return null;
+                        });
+        var stream = controller.chat(new ChatModels.Request("hello", null, List.of()), response);
+        stream.writeTo(new ServletServerHttpResponse(response).getBody());
+    }
+
     @Test
     void statusExposesOnlySafeProviderMetadataAndMissingKeyErrorIsActionable() throws Exception {
         var service = mock(ChatService.class);
@@ -20,7 +48,11 @@ class ChatControllerTest {
         assertThat(status.path("providers").get(1).path("available").asBoolean()).isFalse();
         assertThat(status.path("providers").get(2).path("available").asBoolean()).isFalse();
         var out = new ByteArrayOutputStream();
-        controller.chat(new ChatModels.Request("hi", null, List.of(), "jev")).writeTo(out);
+        controller
+                .chat(
+                        new ChatModels.Request("hi", null, List.of(), "jev"),
+                        mock(HttpServletResponse.class))
+                .writeTo(out);
         assertThat(out.toString()).contains("Jev is not configured", "AI preferences");
         var configured =
                 new ChatController(
@@ -56,7 +88,11 @@ class ChatControllerTest {
         when(service.chat(any(), any()))
                 .thenThrow(new ProviderUnavailableException("CLM is not configured. Add CLM_URL."));
         var out = new ByteArrayOutputStream();
-        controller.chat(new ChatModels.Request("hi", null, List.of(), "clm")).writeTo(out);
+        controller
+                .chat(
+                        new ChatModels.Request("hi", null, List.of(), "clm"),
+                        mock(HttpServletResponse.class))
+                .writeTo(out);
         assertThat(out.toString()).contains("CLM_URL");
     }
 
@@ -72,7 +108,11 @@ class ChatControllerTest {
                         JsonMapper.builder().build());
         assertThat(controller.status().get("local")).isEqualTo(false);
         var out = new ByteArrayOutputStream();
-        controller.chat(new ChatModels.Request("hello", null, List.of())).writeTo(out);
+        controller
+                .chat(
+                        new ChatModels.Request("hello", null, List.of()),
+                        mock(HttpServletResponse.class))
+                .writeTo(out);
         assertThat(out.toString()).contains("error", "presenter override").doesNotContain("secret");
     }
 
@@ -84,7 +124,10 @@ class ChatControllerTest {
                         service,
                         new RouterProperties("ollama", "", "x", "", ""),
                         JsonMapper.builder().build());
-        var stream = controller.chat(new ChatModels.Request("hello", null, List.of()));
+        var stream =
+                controller.chat(
+                        new ChatModels.Request("hello", null, List.of()),
+                        mock(HttpServletResponse.class));
         assertThatThrownBy(
                         () ->
                                 stream.writeTo(

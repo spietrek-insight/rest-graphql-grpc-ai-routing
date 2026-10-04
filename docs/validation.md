@@ -1,5 +1,17 @@
 # Validation record — 2026-09-26
 
+## Simulated flight streaming (2026-10-04)
+
+- Backend: 40 tests passed, including per-event servlet flushing, real server-streaming transport, 21 ordered changing updates, deterministic replay, unsupported targets, historical crew isolation, pacing cancellation and retained bidirectional compatibility. Formatting and production build passed.
+- Frontend: 42 tests passed, including progressive card updates, one assistant message per flight, retained Stop/error state, replay, ignored late updates and presentation view updates/Stop. Lint, formatting, coverage gates and production build passed.
+- Rancher Desktop: rebuilt and deployed backend/frontend at http://localhost:3000. Eight presenter smoke cases passed; the Falcon delivered 21 snapshots through `catalog.StarshipTracker/Watch`.
+- Real Ollama checks routed both current-location and current-pilot questions to `GRPC / ship:5`, returned the first simulated update, and were then cancelled. The historical A New Hope crew question still selected `GRAPHQL / crew:5:1` and returned Han Solo and Chewbacca.
+- Browser: Auto/Ollama completed the 40-second flight (44.6 seconds including routing in one observed request), retained its final answer, and replayed from the opening scene. Presentation view fits the key readings at 1280×720 with no clipped text. It clearly labels fictional telemetry and keeps the documented film crew separate.
+- Delivery timing through the deployed web proxy, one presenter-override run: first snapshot 374 ms, final snapshot 40,454 ms, 21 ordered updates, 18 distinct locations and two pilots. Updates arrived separately at roughly two-second intervals. The check exposed and fixed Spring 7 body-flush suppression; a regression test now asserts the response is committed before the final result.
+- The v4 deck now describes server streaming, the simulated flight and presentation controls on slides 13 and 16, with updated speaker notes. All 27 slides were rendered; only those two slides changed visually.
+- Older performance records below describe the previous three-static-snapshot demo. They are historical results, not current flight-duration benchmarks. `scripts/benchmark.mjs` now records time to the first snapshot separately from full playback time.
+
+
 ## Character cast and flight crew — October 4, 2026
 
 - Replaced producers with 18 fictional characters across six films; no actor names are in the seed or API responses.

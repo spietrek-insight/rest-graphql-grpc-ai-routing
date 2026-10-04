@@ -57,7 +57,9 @@ class CatalogTest {
     void trackerHandlesCompletionCancellationAndBadTargets() {
         @SuppressWarnings("unchecked")
         StreamObserver<TrackSnapshot> output = mock(StreamObserver.class);
-        var tracker = new TrackerService(catalog);
+        var tracker =
+                new TrackerService(
+                        catalog, new FlightSimulation(catalog, JsonMapper.builder().build(), 20));
         var stream = tracker.track(output);
         stream.onNext(TrackRequest.newBuilder().setTarget("ship:7").setSequence(1).build());
         stream.onCompleted();

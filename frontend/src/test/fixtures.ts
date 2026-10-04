@@ -23,3 +23,26 @@ export const insight: Insight = {
     responseBytes: 245,
   },
 };
+
+export const flightSnapshot: import('@/types').TrackSnapshot = {
+  sequence: 1,
+  totalSnapshots: 21,
+  flight: {
+    simulated: true,
+    scenarioId: 'falcon-demo-v1',
+    title: 'Falcon flight: Tatooine to Yavin 4',
+    shipName: 'Millennium Falcon',
+    origin: 'Tatooine',
+    destination: 'Yavin 4',
+    location: 'Mos Eisley · docking bay',
+    phase: 'Preflight',
+    pilot: { id: '2', name: 'Han Solo' },
+    coPilot: { id: '5', name: 'Chewbacca' },
+    progressPercent: 0,
+    speedKph: 0,
+    shieldsPercent: 100,
+    event: 'Flight checks complete.',
+    elapsedMs: 0,
+    durationMs: 40000,
+  },
+};

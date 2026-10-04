@@ -13,7 +13,7 @@ import { getStatus, sendChat } from '@/api/chat';
 import { useChatStore } from '@/store/useChatStore';
 import { usePreferencesStore } from '@/store/usePreferencesStore';
 import { AiPreferences } from '@/components/AiPreferences';
-import type { Status } from '@/types';
+import type { Status, TrackSnapshot, ChatMessage } from '@/types';
 import { Sidebar } from '@/components/Sidebar';
 import { InsightPanel } from '@/components/InsightPanel';
 import { CatalogGuide } from '@/components/CatalogGuide';
@@ -30,6 +30,7 @@ export function ChatPage() {
   const [inspector, setInspector] = useState(() => window.innerWidth >= 970);
   const [retry, setRetry] = useState('');
   const controller = useRef<AbortController | null>(null);
+  const activeMessage = useRef<string | null>(null);
   const provider =
     preferences.provider ??
     (status?.provider === 'jev' || status?.provider === 'clm' ? status.provider : 'ollama');
@@ -60,6 +61,9 @@ export function ChatPage() {
     const abort = new AbortController();
     controller.current = abort;
     const session = state.sessionId;
+    const assistantId = crypto.randomUUID();
+    activeMessage.current = assistantId;
+    const flightSnapshots: TrackSnapshot[] = [];
     const previous = state.messages;
     state.append({ id: crypto.randomUUID(), role: 'user', content: message });
     state.setBusy(true);
@@ -79,13 +83,28 @@ export function ChatPage() {
         (event) => {
           if (abort.signal.aborted || useChatStore.getState().sessionId !== session) return;
           if (event.type === 'decision') state.setDecision(event.data);
-          if (event.type === 'snapshot') state.addSnapshot(event.data);
+          if (event.type === 'snapshot') {
+            state.addSnapshot(event.data);
+            if (event.data.flight) {
+              flightSnapshots.push(event.data);
+              state.upsert({
+                id: assistantId,
+                role: 'assistant',
+                content: 'Watching the simulated flight. Updates arrive automatically.',
+                decision: useChatStore.getState().decision ?? undefined,
+                flight: { snapshots: [...flightSnapshots], state: 'streaming' },
+              });
+            }
+          }
           if (event.type === 'result') {
-            state.append({
-              id: crypto.randomUUID(),
+            state.upsert({
+              id: assistantId,
               role: 'assistant',
               content: event.data.answer,
               insight: event.data.insight,
+              ...(flightSnapshots.length
+                ? { flight: { snapshots: [...flightSnapshots], state: 'complete' as const } }
+                : {}),
             });
             state.selectInsight(event.data.insight);
           }
@@ -93,18 +112,35 @@ export function ChatPage() {
         provider,
       );
     } catch (error) {
-      if (!abort.signal.aborted)
+      if (!abort.signal.aborted) {
+        finishFlight('interrupted');
         state.setError(
           error instanceof Error ? error.message : 'Something went wrong. Please try again.',
         );
+      }
     } finally {
       if (controller.current === abort) {
         controller.current = null;
+        activeMessage.current = null;
         state.setBusy(false);
       }
     }
   }
+  function finishFlight(playback: NonNullable<ChatMessage['flight']>['state']) {
+    const message = useChatStore.getState().messages.find((m) => m.id === activeMessage.current);
+    if (message?.flight?.state === 'streaming')
+      state.upsert({
+        ...message,
+        content:
+          playback === 'stopped'
+            ? 'Flight stopped. The last received update is shown below.'
+            : 'Flight interrupted. The last received update is shown below.',
+        flight: { ...message.flight, state: playback },
+      });
+  }
   function cancel() {
+    finishFlight('stopped');
+    activeMessage.current = null;
     controller.current?.abort();
     controller.current = null;
     state.setBusy(false);
@@ -190,6 +226,7 @@ export function ChatPage() {
               setInspector(true);
             }}
             onSend={(text) => void submit(text)}
+            onStop={cancel}
           />
         ) : (
           <section className="welcome">

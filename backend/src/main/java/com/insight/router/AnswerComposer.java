@@ -9,6 +9,24 @@ import tools.jackson.databind.JsonNode;
 @Component
 public class AnswerComposer {
     public String compose(Decision decision, Exchange exchange) {
+        if (decision.protocol() == Protocol.GRPC && !exchange.response().isEmpty()) {
+            var last = exchange.response().get(exchange.response().size() - 1);
+            if (last.has("flight")) {
+                var flight = last.path("flight");
+                return "Simulated flight complete — "
+                        + flight.path("shipName").asString()
+                        + " is at "
+                        + flight.path("location").asString()
+                        + ". Final pilot: "
+                        + flight.path("pilot").path("name").asString()
+                        + "; co-pilot: "
+                        + flight.path("coPilot").path("name").asString()
+                        + ".\n\nReceived "
+                        + exchange.response().size()
+                        + " updates from one subscription. "
+                        + "The location, pilot handoff and alert were scripted presentation events, not canon history or live telemetry. Ask again to replay the same flight.";
+            }
+        }
         if (decision.protocol() == Protocol.REST && decision.target().startsWith("cast:")) {
             return exchange.response().path("name").asString()
                     + " is a character in the curated demo cast. Ask which films feature this character and which ships appear in those films to explore cast relationships.";
@@ -90,7 +108,7 @@ public class AnswerComposer {
                     "These are the 19 starships in the original demo catalog, enriched with selected film cast. Cast and flight-crew coverage is partial.");
         if (decision.protocol() == Protocol.GRPC)
             lines.add(
-                    "Received 3 catalog snapshots through a live bidirectional gRPC stream. This is demonstration data, not live vessel telemetry.");
+                    "Catalog only: no simulated flight is available for this target. Try tracking the Millennium Falcon. This is catalog data, not live vessel telemetry.");
         return String.join("\n\n", lines);
     }
 

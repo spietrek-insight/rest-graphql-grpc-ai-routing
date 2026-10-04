@@ -18,7 +18,7 @@ for (const [message, expected, target, history = []] of cases) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, override: process.argv.includes('--ai') ? null : expected, history, provider }),
-    signal: AbortSignal.timeout(150_000),
+    signal: AbortSignal.timeout(250_000),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const events = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
@@ -33,6 +33,11 @@ for (const [message, expected, target, history = []] of cases) {
   if (target === 'crew:7:1' && !result.answer.includes('No verified flight-crew records')) throw new Error('Missing crew coverage must be explicit');
   if (target === 'cast:1' && (!result.answer.includes('Luke Skywalker') || result.answer.includes('Mark Hamill'))) throw new Error('Cast must mean characters');
   const snapshots = events.filter(event => event.type === 'snapshot').length;
-  if (expected === 'GRPC' && snapshots !== 3) throw new Error('Expected 3 streamed snapshots');
+  if (expected === 'GRPC') {
+    const updates = events.filter(event => event.type === 'snapshot').map(event => event.data);
+    if (snapshots !== 21 || updates.some((u, i) => u.sequence !== i + 1 || u.totalSnapshots !== 21 || !u.flight?.simulated)) throw new Error('Expected 21 ordered simulated flight updates');
+    if (new Set(updates.map(u => u.flight.location)).size < 10 || new Set(updates.map(u => u.flight.pilot.name)).size !== 2) throw new Error('Flight must change location and pilot');
+    if (updates.at(-1).flight.phase !== 'Arrived' || result.insight.exchange.operation !== 'catalog.StarshipTracker/Watch') throw new Error('Expected one completed server-streaming flight');
+  }
   console.log(`PASS ${expected} → ${target} | ${result.insight.decision.source} | ${snapshots} snapshots`);
 }

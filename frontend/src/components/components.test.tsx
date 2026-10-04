@@ -71,7 +71,7 @@ describe('presentational components', () => {
     );
     expect(screen.getByText('Finding the right route…')).toBeInTheDocument();
     rerender(<MessageList messages={[]} busy snapshots={2} onInspect={vi.fn()} onSend={vi.fn()} />);
-    expect(screen.getByText(/2\/3/)).toBeInTheDocument();
+    expect(screen.getByText(/Receiving updates · 2/)).toBeInTheDocument();
   });
   it('renders guide, navigation, model configuration and slot buttons', async () => {
     const reset = vi.fn(),

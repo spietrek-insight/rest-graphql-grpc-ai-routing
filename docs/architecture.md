@@ -2,7 +2,7 @@
 
 ## One process, genuine protocol calls
 
-Spring Boot provides REST and GraphQL on port 8080; a managed grpc-java server provides bidirectional streaming on 9090. One immutable domain catalog serves all surfaces. The orchestrator uses actual HTTP clients and a native gRPC channel, not direct calls into controllers or synthesized traffic. Browser transport is POST `/api/chat` with incremental NDJSON events: `decision`, zero or more `snapshot`, then `result` or `error`.
+Spring Boot provides REST and GraphQL on port 8080; a managed grpc-java server provides server streaming (`Watch`) and the legacy bidirectional RPC (`Track`) on 9090. One immutable domain catalog serves all surfaces. The orchestrator uses actual HTTP clients and a native gRPC channel, not direct calls into controllers or synthesized traffic. Browser transport is POST `/api/chat` with incremental NDJSON events: `decision`, zero or more `snapshot`, then `result` or `error`.
 
 ## Classifier versus answer generation
 
@@ -16,7 +16,11 @@ The inspector captures the HTTP request document and received JSON body, or the 
 
 ## Streaming
 
-The native gRPC contract is bidirectional. The client sends three paced snapshot requests while the response stream is open; the service replies to each. The HTTP bridge flushes each snapshot immediately. The UI shows progress as events arrive and retains the completed exchange. A 10-second gRPC deadline bounds transport work; HTTP/model calls have a 120-second timeout. Stop cancels the browser fetch and suppresses late session results; an upstream classifier may finish within its timeout before noticing disconnect because Java's synchronous upstream call is not tied to the browser AbortSignal.
+The chat gateway sends one `WatchRequest` using the server-streaming `Watch` RPC. For the Falcon, `FlightSimulation` reads a separate immutable, fictional scenario and `TrackerService` emits 21 paced updates (40 seconds by default). Each call owns its own virtual worker thread; no global mutable timeline is shared. Updates include simulation provenance, location, phase, pilot/co-pilot, progress, speed, shields and a narrative event. Historical catalog relationships are unchanged. Non-Falcon targets receive one catalog-only update; unsupported targets fail validation. `Track` retains its original bidirectional request/snapshot behavior for compatibility.
+
+The gateway forwards each Protobuf response to the browser as NDJSON and captures the exchange. The controller calls `HttpServletResponse.flushBuffer()` after each event: Spring 7.0.6+ suppresses `getBody().flush()` by default, which otherwise batches snapshots in the servlet buffer ([framework source](https://github.com/spring-projects/spring-framework/blob/main/spring-web/src/main/java/org/springframework/http/server/ServletServerHttpResponse.java)). A single chat card updates progressively and retains its last state on completion, Stop or failure. Fetch cancellation is noticed on a subsequent HTTP write; the gateway then cancels its gRPC context and channel, which interrupts the simulation worker. Server-side flow control waits for a ready consumer. A 115-second gRPC deadline bounds the allowed 20–5000 ms pacing (up to 100 seconds). HTTP/model calls have a 120-second timeout; an upstream classifier may finish before noticing browser cancellation. There is no automatic resume, cross-session flight, or additional model inference during the stream.
+
+Contract and cancellation design follow the [gRPC Java generated-code reference](https://grpc.io/docs/languages/java/generated-code/) and [gRPC cancellation guide](https://grpc.io/docs/guides/cancellation/).
 
 ## Data continuity
 

@@ -8,14 +8,20 @@ import { Braces, ChevronRight, LoaderCircle, Maximize2, User } from 'lucide-reac
 import type { ChatMessage, Insight } from '@/types';
 import { ProtocolBadge } from '../ProtocolBadge';
 import { ProtocolReason } from '../ProtocolReason';
+import { FlightCard } from './FlightCard';
 import { ResponseDialog } from '../ResponseDialog';
 export function MessageBubble({
   message,
   onInspect,
+  onReplay,
+  onStop,
 }: {
   message: ChatMessage;
   onInspect: (insight: Insight) => void;
+  onReplay?: () => void;
+  onStop?: () => void;
 }) {
+  const decision = message.insight?.decision ?? message.decision;
   return (
     <article className={`message message-${message.role}`}>
       <div className="message-avatar">
@@ -24,10 +30,13 @@ export function MessageBubble({
       <div className="message-body">
         <div className="message-heading">
           <strong>{message.role === 'assistant' ? 'Protocol Studio' : 'You'}</strong>
-          {message.insight && <ProtocolBadge protocol={message.insight.decision.protocol} />}
+          {decision && <ProtocolBadge protocol={decision.protocol} />}
         </div>
-        {message.insight && <ProtocolReason decision={message.insight.decision} />}
+        {decision && <ProtocolReason decision={decision} />}
         <div className="message-content">{message.content}</div>
+        {message.flight && (
+          <FlightCard playback={message.flight} onReplay={onReplay} onStop={onStop} />
+        )}
         {message.insight && (
           <div className="message-actions">
             <button className="inspect-link" onClick={() => onInspect(message.insight!)}>
@@ -51,12 +60,14 @@ export function MessageList({
   snapshots,
   onInspect,
   onSend,
+  onStop,
 }: {
   messages: ChatMessage[];
   busy: boolean;
   snapshots: number;
   onInspect: (insight: Insight) => void;
   onSend: (text: string) => void;
+  onStop?: () => void;
 }) {
   const runtime = useExternalStoreRuntime({
     messages,
@@ -77,14 +88,18 @@ export function MessageList({
         <ThreadPrimitive.Viewport className="message-viewport" autoScroll>
           <div className="messages-inner">
             {messages.map((m) => (
-              <MessageBubble key={m.id} message={m} onInspect={onInspect} />
+              <MessageBubble
+                key={m.id}
+                message={m}
+                onInspect={onInspect}
+                onStop={onStop}
+                onReplay={busy ? undefined : () => onSend('Track the Millennium Falcon')}
+              />
             ))}
-            {busy && (
+            {busy && !messages.some((m) => m.flight?.state === 'streaming') && (
               <div className="thinking" role="status">
                 <LoaderCircle size={16} className="spin" />
-                {snapshots
-                  ? `Receiving gRPC snapshots · ${snapshots}/3`
-                  : 'Finding the right route…'}
+                {snapshots ? `Receiving updates · ${snapshots}` : 'Finding the right route…'}
               </div>
             )}
           </div>

@@ -3,9 +3,13 @@ package catalog;
 option java_package = "com.insight.router.proto";
 option java_multiple_files = true;
 service StarshipTracker {
+  // Subscribe once; the server owns the simulated flight timeline.
+  rpc Watch(WatchRequest) returns (stream TrackSnapshot);
   // Each client request produces a snapshot; both directions remain open.
   rpc Track(stream TrackRequest) returns (stream TrackSnapshot);
 }
+message WatchRequest { string target = 1; }
+
 message TrackRequest {
   string target = 1;
   int32 sequence = 2;
@@ -28,6 +32,8 @@ message TrackSnapshot {
   int32 sequence = 2;
   string observed_at = 3;
   string status = 4;
+  int32 total_snapshots = 5;
+  FlightState flight = 6;
 }
 
 message CastPerson { string id = 1; string name = 2; }
@@ -37,4 +43,24 @@ message FlightCrew {
   CastPerson member = 3;
   string role = 4;
   string source = 5;
+}
+
+// Fictional presentation scenario, separate from documented film/crew records.
+message FlightState {
+  bool simulated = 1;
+  string scenario_id = 2;
+  string title = 3;
+  string ship_name = 4;
+  string origin = 5;
+  string destination = 6;
+  string location = 7;
+  string phase = 8;
+  CastPerson pilot = 9;
+  CastPerson co_pilot = 10;
+  int32 progress_percent = 11;
+  int32 speed_kph = 12;
+  int32 shields_percent = 13;
+  string event = 14;
+  int32 elapsed_ms = 15;
+  int32 duration_ms = 16;
 }

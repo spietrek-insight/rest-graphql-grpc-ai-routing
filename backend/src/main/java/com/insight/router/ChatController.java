@@ -2,6 +2,7 @@ package com.insight.router;
 
 import static com.insight.router.ChatModels.*;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -65,14 +66,16 @@ public class ChatController {
     }
 
     @PostMapping(value = "/chat", produces = "application/x-ndjson")
-    StreamingResponseBody chat(@Valid @RequestBody Request request) {
+    StreamingResponseBody chat(@Valid @RequestBody Request request, HttpServletResponse response) {
         return output -> {
             java.util.function.Consumer<Event> send =
                     event -> {
                         try {
                             output.write(mapper.writeValueAsBytes(event));
                             output.write('\n');
-                            output.flush();
+                            // Spring 7 suppresses body-stream flushes by default. Flush the
+                            // servlet response itself so every NDJSON event reaches the client.
+                            response.flushBuffer();
                         } catch (java.io.IOException e) {
                             throw new java.io.UncheckedIOException(e);
                         }

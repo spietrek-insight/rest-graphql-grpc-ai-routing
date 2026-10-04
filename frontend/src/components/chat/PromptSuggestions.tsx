@@ -19,7 +19,7 @@ const prompts = [
     protocol: 'GRPC' as const,
     title: 'Track the Millennium Falcon',
     text: 'Track the Millennium Falcon',
-    detail: 'Watch a real stream unfold.',
+    detail: 'One request. A 40-second simulated flight.',
     icon: Radio,
   },
 ];
