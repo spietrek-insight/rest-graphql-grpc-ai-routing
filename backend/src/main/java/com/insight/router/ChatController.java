@@ -44,7 +44,7 @@ public class ChatController {
                                 "local",
                                 true,
                                 "available",
-                                true),
+                                !properties.ollamaModel().isBlank()),
                         Map.of(
                                 "id",
                                 "jev",
