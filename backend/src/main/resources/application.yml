@@ -4,6 +4,8 @@ spring:
   threads:
     virtual:
       enabled: true
+  config:
+    import: optional:file:./secrets.yml
   mvc:
     async:
       request-timeout: 300000
