@@ -3,6 +3,7 @@ dist/
 coverage/
 target/
 .env*
+secrets.yml
 !.env.example
 !.env.native.example
 .DS_Store

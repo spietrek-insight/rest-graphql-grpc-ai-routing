@@ -39,7 +39,7 @@ class ClmClassifierTest {
                 mapper.readTree(
                         """
                 {"model":"clm-test","answers":{
-                  "protocol":{"choice":"GRAPHQL","confidence":0.8,"probabilities":{"GRAPHQL":0.9,"REST":0.1}},
+                  "operation":{"choice":"SHIP_FILMS","confidence":0.8,"probabilities":{"SHIP_FILMS":0.9,"STARSHIP":0.1}},
                   "target":{"choice":"ship:5","confidence":0.95}}}
                 """);
         when(http.send(eq("POST"), eq("http://clm/v1/systemone"), any(), eq(Map.of())))
@@ -60,9 +60,20 @@ class ClmClassifierTest {
                 .send(eq("POST"), eq("http://clm/v1/systemone"), capture.capture(), eq(Map.of()));
         var body = capture.getValue();
         assertThat(body.path("model").asString()).isEqualTo("clm-test");
-        assertThat(body.path("questions").path("protocol").path("type").asString())
+        assertThat(body.path("questions").path("operation").path("type").asString())
                 .isEqualTo("choice");
-        assertThat(body.path("questions").path("protocol").path("criteria")).hasSize(3);
+        assertThat(body.path("questions").path("operation").path("criteria"))
+                .hasSize(Operation.routableValues().size());
+        // Typed providers get the same routing rules as the Ollama tools.
+        assertThat(body.path("questions").path("operation").path("instructions").asString())
+                .contains("SHIP_CREW", "Cast means fictional characters");
+        assertThat(
+                        body.path("questions")
+                                .path("operation")
+                                .path("criteria")
+                                .path("SHIP_CREW")
+                                .asString())
+                .contains("flew", "GRAPHQL");
         assertThat(body.path("questions").path("target").path("criteria").has("none")).isTrue();
         assertThat(body.path("state").asString())
                 .contains("turn-16:", "turn-19:")
@@ -77,7 +88,7 @@ class ClmClassifierTest {
                 .thenReturn(
                         new JsonHttp.Reply(
                                 mapper.readTree(
-                                        "{\"answers\":{\"protocol\":{\"choice\":\"REST\"},\"target\":{\"choice\":\"film:1\"}}}"),
+                                        "{\"answers\":{\"operation\":{\"choice\":\"FILM\"},\"target\":{\"choice\":\"film:1\"}}}"),
                                 1));
         var props =
                 new RouterProperties(
@@ -122,8 +133,9 @@ class ClmClassifierTest {
         for (String payload :
                 List.of(
                         "{}",
-                        "{\"answers\":{\"protocol\":{\"choice\":\"INVALID\"},\"target\":{\"choice\":\"ship:5\"}}}",
-                        "{\"answers\":{\"protocol\":{\"choice\":\"REST\"},\"target\":{\"choice\":\"ship:999\"}}}")) {
+                        "{\"answers\":{\"operation\":{\"choice\":\"INVALID\"},\"target\":{\"choice\":\"ship:5\"}}}",
+                        "{\"answers\":{\"operation\":{\"choice\":\"STARSHIP\"},\"target\":{\"choice\":\"ship:999\"}}}",
+                        "{\"answers\":{\"operation\":{\"choice\":\"FILM\"},\"target\":{\"choice\":\"cast:1\"}}}")) {
             when(http.send(anyString(), anyString(), any(), anyMap()))
                     .thenReturn(new JsonHttp.Reply(mapper.readTree(payload), 1));
             assertThatThrownBy(
@@ -139,7 +151,7 @@ class ClmClassifierTest {
                                 classifier("http://clm", "")
                                         .classify(new Request("Falcon", null, List.of())))
                 .hasMessage("unreachable");
-        verify(http, times(4)).send(eq("POST"), eq("http://clm/v1/systemone"), any(), eq(Map.of()));
+        verify(http, times(5)).send(eq("POST"), eq("http://clm/v1/systemone"), any(), eq(Map.of()));
         verifyNoMoreInteractions(http);
     }
 }

@@ -227,7 +227,7 @@ The Compose Ollama container and model volume remain available, although backend
 
 ## Optional Jev classification
 
-Jev is a structured decision model, not a text generator. This implementation sends two Choice questions (protocol and catalog target) to the documented TypeSafe HTTP API, preserves its confidence/probabilities in the inspector, and composes answers from returned catalog data.
+Jev is a structured decision model, not a text generator. This implementation sends two Choice questions (reviewed operation and catalog target) to the documented TypeSafe HTTP API, preserves its confidence/probabilities in the inspector, and composes answers from returned catalog data.
 
 ```dotenv
 JEV_MODEL=jev-latest
@@ -242,7 +242,7 @@ Open **AI preferences** in the top bar to switch between Ollama, Jev, and CLM. S
 
 ## Optional self-hosted CLM classification
 
-CLM uses the same two Choice questions as Jev to select a protocol and catalog target. Its confidence and probability distributions appear in the inspector; answers still come from actual catalog responses. It does not generate prose. The frontend labels CLM **SELF-HOSTED** because its configured server may be local or remote.
+CLM uses the same two Choice questions as Jev to select an operation and catalog target. Its confidence and probability distributions appear in the inspector; answers still come from actual catalog responses. It does not generate prose. The frontend labels CLM **SELF-HOSTED** because its configured server may be local or remote.
 
 Run a CLM server and its required Qwen3-8B encoder separately, then configure the backend:
 

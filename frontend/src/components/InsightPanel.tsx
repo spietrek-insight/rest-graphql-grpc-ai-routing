@@ -10,7 +10,7 @@ import {
   Network,
   ScanLine,
 } from 'lucide-react';
-import type { Decision, Insight } from '@/types';
+import type { Decision, Insight, RestComparison } from '@/types';
 import { ProtocolBadge } from './ProtocolBadge';
 import { protocolLabel } from '@/lib/protocols';
 import { Button } from './ui/button';
@@ -137,6 +137,12 @@ export function InsightPanel({
                   <ArrowRight size={13} />
                   <code>{insight.exchange.operation}</code>
                 </div>
+                {insight.exchange.comparison && (
+                  <RestComparisonCard
+                    comparison={insight.exchange.comparison}
+                    graphqlBytes={insight.exchange.responseBytes}
+                  />
+                )}
               </>
             )}
             <div className="payload-tabs" role="tablist" aria-label="Captured traffic">
@@ -196,5 +202,47 @@ export function InsightPanel({
         </div>
       </div>
     </aside>
+  );
+}
+
+function RestComparisonCard({
+  comparison,
+  graphqlBytes,
+}: {
+  comparison: RestComparison;
+  graphqlBytes: number;
+}) {
+  const requests = comparison.calls.length;
+  return (
+    <div className="rest-comparison" aria-label="Same data over REST">
+      <div className="section-kicker">SAME DATA OVER REST</div>
+      <div className="metrics">
+        <div>
+          <span>GRAPHQL</span>
+          <strong>
+            1<small> request · {graphqlBytes.toLocaleString()} B</small>
+          </strong>
+        </div>
+        <div>
+          <span>REST EQUIVALENT</span>
+          <strong>
+            {requests}
+            <small>
+              {' '}
+              {requests === 1 ? 'request' : 'requests'} ·{' '}
+              {comparison.responseBytes.toLocaleString()} B
+            </small>
+          </strong>
+        </div>
+      </div>
+      <ul>
+        {comparison.calls.map((call) => (
+          <li key={call}>
+            <code>{call}</code>
+          </li>
+        ))}
+      </ul>
+      <p>Measured on the server with real REST calls. Response bodies only.</p>
+    </div>
   );
 }

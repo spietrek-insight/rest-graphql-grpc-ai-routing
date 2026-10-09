@@ -37,43 +37,48 @@ public class ProtocolGateway {
         long start = System.nanoTime();
         String base = "http://127.0.0.1:" + context.getWebServer().getPort();
         if (decision.protocol() == Protocol.GRPC) return track(decision.target(), events, start);
-        String endpoint;
-        String operation;
-        JsonNode request;
-        JsonHttp.Reply reply;
+        var op = decision.operation();
         if (decision.protocol() == Protocol.REST) {
-            String path =
-                    decision.target().startsWith("cast:")
-                            ? "/api/catalog/cast/" + decision.target().substring(5)
-                            : decision.target().startsWith("film:")
-                                    ? "/api/catalog/films/" + decision.target().substring(5)
-                                    : "/api/catalog/starships/" + decision.target();
-            endpoint = base + path;
-            operation = "GET " + path;
-            request = mapper.valueToTree(Map.of("method", "GET", "url", endpoint));
-            reply = http.send("GET", endpoint, null, Map.of());
-        } else {
-            endpoint = base + "/graphql";
-            operation = "query ExploreStarships";
-            request =
-                    mapper.valueToTree(
-                            Map.of(
-                                    "query",
-                                    "query ExploreStarships($target: String!) { starships(target: $target) { id name maxSpeed length films { id title cast { id name } } crew { filmId filmTitle role source member { id name } } } films(target: $target) { id title cast { id name } } }",
-                                    "variables",
-                                    Map.of("target", decision.target())));
-            reply = http.send("POST", endpoint, request, Map.of());
-            if (reply.body().has("errors"))
-                throw new IllegalStateException("GraphQL returned errors.");
+            String path = op.restPath(decision.target());
+            String endpoint = base + path;
+            var reply = http.send("GET", endpoint, null, Map.of());
+            return new Exchange(
+                    "GET " + path,
+                    endpoint,
+                    "JSON (captured HTTP body)",
+                    mapper.valueToTree(Map.of("method", "GET", "url", endpoint)),
+                    reply.body(),
+                    elapsed(start),
+                    reply.bytes());
         }
+        String endpoint = base + "/graphql";
+        JsonNode request =
+                mapper.valueToTree(
+                        Map.of(
+                                "query",
+                                op.query(),
+                                "variables",
+                                Map.of("target", decision.target())));
+        var reply = http.send("POST", endpoint, request, Map.of());
+        if (reply.body().has("errors")) throw new IllegalStateException("GraphQL returned errors.");
+        long durationMs = elapsed(start);
         return new Exchange(
-                operation,
+                op.queryName(),
                 endpoint,
                 "JSON (captured HTTP body)",
                 request,
                 reply.body(),
-                elapsed(start),
-                reply.bytes());
+                durationMs,
+                reply.bytes(),
+                restEquivalent(base, op.restEquivalent(decision.target())));
+    }
+
+    // Real calls, measured separately, so the comparison is evidence rather than a claim.
+    private Comparison restEquivalent(String base, List<String> paths) {
+        long start = System.nanoTime();
+        int bytes = 0;
+        for (var path : paths) bytes += http.send("GET", base + path, null, Map.of()).bytes();
+        return new Comparison(paths.stream().map(p -> "GET " + p).toList(), bytes, elapsed(start));
     }
 
     private Exchange track(String target, Consumer<Event> events, long start) {

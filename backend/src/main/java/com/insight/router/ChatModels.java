@@ -24,6 +24,7 @@ public final class ChatModels {
 
     public record Decision(
             Protocol protocol,
+            Operation operation,
             String target,
             String source,
             String reason,
@@ -33,8 +34,25 @@ public final class ChatModels {
                     || !target.matches(
                             "all|none|ship:(?:[1-9]|1[0-9])|film:[1-6]|cast:(?:[1-9]|1[0-8])|crew:(?:[1-9]|1[0-9]):(?:[1-6]|all)"))
                 throw new IllegalArgumentException("Model returned an unsupported target.");
+            if (operation == null || operation.protocol() != protocol || !operation.accepts(target))
+                throw new IllegalArgumentException(
+                        "Model returned an operation that does not fit its target.");
+        }
+
+        public Decision(
+                Operation operation, String target, String source, JsonNode classification) {
+            this(
+                    operation.protocol(),
+                    operation,
+                    target,
+                    source,
+                    operation.reason(),
+                    classification);
         }
     }
+
+    /** The same data fetched over REST, measured so the audience can compare. */
+    public record Comparison(List<String> calls, int responseBytes, long durationMs) {}
 
     public record Exchange(
             String operation,
@@ -43,7 +61,19 @@ public final class ChatModels {
             JsonNode request,
             JsonNode response,
             long durationMs,
-            int responseBytes) {}
+            int responseBytes,
+            Comparison comparison) {
+        public Exchange(
+                String operation,
+                String endpoint,
+                String encoding,
+                JsonNode request,
+                JsonNode response,
+                long durationMs,
+                int responseBytes) {
+            this(operation, endpoint, encoding, request, response, durationMs, responseBytes, null);
+        }
+    }
 
     public record Timings(long routingMs, long totalMs) {}
 

@@ -66,4 +66,9 @@ class CatalogGraphqlController {
     List<Catalog.CastMember> cast() {
         return catalog.cast();
     }
+
+    @QueryMapping
+    Catalog.CastMember castMember(@Argument String target) {
+        return catalog.castMemberFor(target);
+    }
 }

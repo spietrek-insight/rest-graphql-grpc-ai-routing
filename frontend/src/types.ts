@@ -9,6 +9,7 @@ export interface ProviderOption {
 }
 export interface Decision {
   protocol: Protocol;
+  operation?: string;
   target: string;
   source: string;
   reason: string;
@@ -22,6 +23,13 @@ export interface Exchange {
   response: unknown;
   durationMs: number;
   responseBytes: number;
+  comparison?: RestComparison | null;
+}
+/** The same data fetched over REST, measured by the backend for comparison. */
+export interface RestComparison {
+  calls: string[];
+  responseBytes: number;
+  durationMs: number;
 }
 export interface Insight {
   decision: Decision;

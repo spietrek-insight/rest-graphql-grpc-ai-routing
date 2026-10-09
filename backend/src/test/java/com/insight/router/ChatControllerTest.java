@@ -45,6 +45,8 @@ class ChatControllerTest {
         var controller =
                 new ChatController(service, new RouterProperties("ollama", "", "", "", ""), mapper);
         var status = mapper.valueToTree(controller.status());
+        // No OLLAMA_MODEL or .env: the default local model is still usable.
+        assertThat(status.path("providers").get(0).path("available").asBoolean()).isTrue();
         assertThat(status.path("providers").get(1).path("available").asBoolean()).isFalse();
         assertThat(status.path("providers").get(2).path("available").asBoolean()).isFalse();
         var out = new ByteArrayOutputStream();

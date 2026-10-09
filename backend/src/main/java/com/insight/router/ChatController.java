@@ -44,7 +44,8 @@ public class ChatController {
                                 "local",
                                 true,
                                 "available",
-                                !properties.ollamaModel().isBlank()),
+                                // OLLAMA_MODEL is optional; the default model resolves without it.
+                                !properties.modelFor("ollama").isBlank()),
                         Map.of(
                                 "id",
                                 "jev",

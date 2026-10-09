@@ -89,6 +89,66 @@ class ProtocolIntegrationTest {
         assertThat(unknown.answer()).contains("No matching starships");
     }
 
+    @Autowired ProtocolGateway gateway;
+    @Autowired AnswerComposer composer;
+
+    Result run(Operation operation, String target) {
+        var decision = new Decision(operation, target, "test", mapper.createObjectNode());
+        var exchange = gateway.invoke(decision, e -> {});
+        return new Result(
+                composer.compose(decision, exchange),
+                new Insight(decision, exchange, new Timings(0, 0)));
+    }
+
+    @Test
+    void graphqlOperationsSelectOnlyWhatTheyAnswerAndMeasureTheRestEquivalent() {
+        var cast = run(Operation.FILM, "film:1");
+        assertThat(cast.answer()).contains("Luke Skywalker").doesNotContain("CR90", "Falcon");
+        assertThat(cast.insight().exchange().comparison()).isNull();
+
+        var ships = run(Operation.SHIPS_IN_FILM, "film:1");
+        assertThat(ships.answer())
+                .startsWith("Starships in A New Hope:")
+                .contains("Millennium Falcon", "Death Star")
+                .doesNotContain("Luke Skywalker", "Maximum speed");
+        var shipData = ships.insight().exchange().response().path("data");
+        assertThat(shipData.path("starships").get(0).propertyNames()).containsExactly("name");
+        var comparison = ships.insight().exchange().comparison();
+        assertThat(comparison.calls())
+                .containsExactly("GET /api/catalog/films/1", "GET /api/catalog/starships/film:1");
+        // The point of the demo: REST returns far more for the same answer.
+        assertThat(comparison.responseBytes())
+                .isGreaterThan(ships.insight().exchange().responseBytes() * 5);
+
+        var crew = run(Operation.FILM_SHIPS_CREW, "film:1");
+        assertThat(crew.answer())
+                .contains("Millennium Falcon — Han Solo (pilot), Chewbacca (co-pilot)")
+                .contains("CR90 corvette — no verified crew records")
+                .doesNotContain("Lando", "Luke Skywalker (");
+
+        assertThat(run(Operation.SHIP_FILMS, "ship:5").answer())
+                .contains("Millennium Falcon appears in A New Hope", "Leia Organa");
+        assertThat(run(Operation.SHIP_CREW, "crew:5:3").answer())
+                .contains("Lando Calrissian", "Nien Nunb")
+                .doesNotContain("Han Solo");
+        var character = run(Operation.CHARACTER_FILMS, "cast:1");
+        assertThat(character.answer())
+                .startsWith("Luke Skywalker appears in")
+                .contains("Starships in those films", "X-wing");
+        assertThat(character.insight().exchange().comparison().calls()).hasSize(3);
+        assertThat(run(Operation.COMPARE_STARSHIPS, "all").answer())
+                .contains("Fastest of 19 starships", "Largest: Death Star");
+        for (var op :
+                List.of(
+                        Operation.SHIPS_IN_FILM,
+                        Operation.FILM_SHIPS_CREW,
+                        Operation.SHIP_FILMS,
+                        Operation.SHIP_CREW,
+                        Operation.CHARACTER_FILMS,
+                        Operation.COMPARE_STARSHIPS))
+            assertThat(run(op, "none").answer()).contains("No matching starships");
+    }
+
     @Test
     void allThreeRealTransportsProduceGroundedAnswers() {
         for (Protocol protocol : Protocol.values()) {

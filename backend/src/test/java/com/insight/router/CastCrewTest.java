@@ -37,7 +37,7 @@ class CastCrewTest {
                 .isEqualTo("crew:5:3");
         assertThatThrownBy(() -> catalog.starships("crew:20:1"))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new Decision(Protocol.GRAPHQL, "producer:1", "test", "", null))
+        assertThatThrownBy(() -> new Decision(Operation.SHIP_CREW, "producer:1", "test", null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

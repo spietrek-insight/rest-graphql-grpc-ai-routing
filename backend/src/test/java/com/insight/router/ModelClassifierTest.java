@@ -41,15 +41,17 @@ class ModelClassifierTest {
     void ollamaUsesToolCallRatherThanKeywords() throws Exception {
         var result =
                 mapper.readTree(
-                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"GRAPHQL\",\"arguments\":{\"target\":\"ship:7\"}}}]}}");
+                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"SHIP_FILMS\",\"arguments\":{\"target\":\"ship:7\"}}}]}}");
         when(http.send(eq("POST"), eq("http://ollama/api/chat"), any(), eq(Map.of())))
                 .thenReturn(new JsonHttp.Reply(result, 1));
         var decision = classifier("ollama", "").classify(request("what about its cast?", null));
         assertThat(decision.protocol()).isEqualTo(Protocol.GRAPHQL);
+        assertThat(decision.operation()).isEqualTo(Operation.SHIP_FILMS);
         assertThat(decision.target()).isEqualTo("ship:7");
+        assertThat(decision.reason()).isEqualTo(Operation.SHIP_FILMS.reason());
         var captor = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
         verify(http).send(anyString(), anyString(), captor.capture(), anyMap());
-        assertThat(captor.getValue().path("tools")).hasSize(3);
+        assertThat(captor.getValue().path("tools")).hasSize(Operation.routableValues().size());
         assertThat(captor.getValue().path("messages")).hasSize(2);
         assertThat(captor.getValue().path("keep_alive").asString()).isEqualTo("30m");
         assertThat(captor.getValue().path("options").path("num_predict").asInt()).isEqualTo(96);
@@ -62,7 +64,7 @@ class ModelClassifierTest {
                 .thenReturn(
                         new JsonHttp.Reply(
                                 mapper.readTree(
-                                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"GRAPHQL\",\"arguments\":{\"target\":\"crew:5:1\"}}}]}}"),
+                                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"SHIP_CREW\",\"arguments\":{\"target\":\"crew:5:1\"}}}]}}"),
                                 1));
         var decision =
                 classifier("ollama", "")
@@ -71,25 +73,38 @@ class ModelClassifierTest {
         var capture = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
         verify(http).send(anyString(), anyString(), capture.capture(), anyMap());
         assertThat(capture.getValue().toString().length()).isLessThan(10000);
-        var choices =
-                capture.getValue()
-                        .path("tools")
-                        .get(1)
-                        .path("function")
+        var crewChoices = toolTargets(capture.getValue(), "SHIP_CREW");
+        assertThat(crewChoices).contains(mapper.valueToTree("crew:5:1"));
+        assertThat(crewChoices)
+                .doesNotContain(
+                        mapper.valueToTree("film:1"),
+                        mapper.valueToTree("crew:20:1"),
+                        mapper.valueToTree("producer:1"));
+        // Cast lists can only be routed to film or character targets, never crew.
+        assertThat(toolTargets(capture.getValue(), "FILM"))
+                .containsExactlyElementsOf(
+                        java.util.stream.IntStream.rangeClosed(1, 6)
+                                .mapToObj(i -> (JsonNode) mapper.valueToTree("film:" + i))
+                                .toList());
+        assertThat(toolTargets(capture.getValue(), "TRACK").toString()).doesNotContain("crew:");
+    }
+
+    JsonNode toolTargets(JsonNode body, String operation) {
+        for (var tool : body.path("tools"))
+            if (tool.path("function").path("name").asString().equals(operation))
+                return tool.path("function")
                         .path("parameters")
                         .path("properties")
                         .path("target")
                         .path("enum");
-        assertThat(choices).contains(mapper.valueToTree("crew:5:1"), mapper.valueToTree("film:1"));
-        assertThat(choices)
-                .doesNotContain(mapper.valueToTree("crew:20:1"), mapper.valueToTree("producer:1"));
+        throw new AssertionError("Missing tool " + operation);
     }
 
     @Test
     void boundsRoutingContextWithoutChangingTheLatestQuestion() throws Exception {
         var result =
                 mapper.readTree(
-                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"REST\",\"arguments\":{\"target\":\"ship:5\"}}}]}}");
+                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"STARSHIP\",\"arguments\":{\"target\":\"ship:5\"}}}]}}");
         when(http.send(anyString(), anyString(), any(), anyMap()))
                 .thenReturn(new JsonHttp.Reply(result, 1));
         var history =
@@ -120,17 +135,28 @@ class ModelClassifierTest {
                 List.of(
                         "{}",
                         "{\"message\":{\"tool_calls\":[]}}",
-                        "{\"message\":{\"tool_calls\":[{},{}]}}")) {
+                        "{\"message\":{\"tool_calls\":[{},{}]}}",
+                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"REST\",\"arguments\":{\"target\":\"ship:5\"}}}]}}",
+                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"FILM\",\"arguments\":{\"target\":\"cast:1\"}}}]}}")) {
             when(http.send(anyString(), anyString(), any(), anyMap()))
                     .thenReturn(new JsonHttp.Reply(mapper.readTree(payload), 1));
             assertThatThrownBy(() -> classifier("ollama", "").classify(request("hi", null)))
-                    .isInstanceOf(IllegalStateException.class);
+                    .isInstanceOf(RuntimeException.class);
         }
         assertThatThrownBy(
                         () ->
                                 new Decision(
-                                        Protocol.REST,
+                                        Operation.STARSHIP,
                                         "unknown",
+                                        "x",
+                                        mapper.createObjectNode()))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(
+                        () ->
+                                new Decision(
+                                        Protocol.REST,
+                                        Operation.SHIP_CREW,
+                                        "crew:5:1",
                                         "x",
                                         "x",
                                         mapper.createObjectNode()))
@@ -141,7 +167,7 @@ class ModelClassifierTest {
     void jevSendsChoiceQuestionsAndKeepsConfidence() throws Exception {
         var result =
                 mapper.readTree(
-                        "{\"model\":\"jev-1.13.0\",\"answers\":{\"protocol\":{\"choice\":\"GRPC\",\"confidence\":0.9},\"target\":{\"choice\":\"ship:7\"}}}");
+                        "{\"model\":\"jev-1.13.0\",\"answers\":{\"operation\":{\"choice\":\"TRACK\",\"confidence\":0.9},\"target\":{\"choice\":\"ship:7\"}}}");
         when(http.send(
                         anyString(),
                         eq("http://jev/v1/systemone"),
@@ -150,7 +176,7 @@ class ModelClassifierTest {
                 .thenReturn(new JsonHttp.Reply(result, 1));
         var decision = classifier("jev", "secret").classify(request("track it", null));
         assertThat(decision.protocol()).isEqualTo(Protocol.GRPC);
-        assertThat(decision.classification().path("protocol").path("confidence").asDouble())
+        assertThat(decision.classification().path("operation").path("confidence").asDouble())
                 .isEqualTo(.9);
         assertThat(decision.source()).contains("jev-1.13.0");
     }
@@ -167,10 +193,10 @@ class ModelClassifierTest {
     void perRequestProviderSwitchUsesIndependentModelsWithoutRestart() throws Exception {
         var local =
                 mapper.readTree(
-                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"REST\",\"arguments\":{\"target\":\"ship:5\"}}}]}}");
+                        "{\"message\":{\"tool_calls\":[{\"function\":{\"name\":\"STARSHIP\",\"arguments\":{\"target\":\"ship:5\"}}}]}}");
         var hosted =
                 mapper.readTree(
-                        "{\"model\":\"jev-version\",\"answers\":{\"protocol\":{\"choice\":\"GRAPHQL\"},\"target\":{\"choice\":\"ship:5\"}}}");
+                        "{\"model\":\"jev-version\",\"answers\":{\"operation\":{\"choice\":\"SHIP_FILMS\"},\"target\":{\"choice\":\"ship:5\"}}}");
         when(http.send(anyString(), eq("http://ollama/api/chat"), any(), anyMap()))
                 .thenReturn(new JsonHttp.Reply(local, 1));
         when(http.send(anyString(), eq("http://jev/v1/systemone"), any(), anyMap()))

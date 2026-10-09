@@ -182,6 +182,12 @@ public class Catalog {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown cast member"));
     }
 
+    /** The character a cast:N target names; null for any other target kind. */
+    public CastMember castMemberFor(String target) {
+        requireTarget(target);
+        return target.startsWith("cast:") ? castMember(target.substring(5)) : null;
+    }
+
     public Film film(String id) {
         return films.stream()
                 .filter(f -> f.id().equals(id))
@@ -235,11 +241,7 @@ public class Catalog {
                                         text.contains(f.title().toLowerCase(Locale.ROOT))
                                                 || f.id().equals("1") && text.contains("new hope"))
                         .findFirst();
-        if (ship.isPresent()
-                && (text.contains("flew")
-                        || text.contains("pilot")
-                        || text.contains("crew")
-                        || text.contains("flies")))
+        if (ship.isPresent() && mentionsCrew(text))
             return "crew:" + ship.get().id() + ":" + film.map(Film::id).orElse("all");
         if (ship.isPresent()) return "ship:" + ship.get().id();
         if (film.isPresent()) return "film:" + film.get().id();
@@ -248,5 +250,14 @@ public class Catalog {
                 .map(c -> "cast:" + c.id())
                 .findFirst()
                 .orElse("all");
+    }
+
+    /** Presenter-override matching only; automatic routing never uses keywords. */
+    public boolean mentionsCrew(String message) {
+        String text = message.toLowerCase(Locale.ROOT);
+        return text.contains("flew")
+                || text.contains("pilot")
+                || text.contains("crew")
+                || text.contains("flies");
     }
 }

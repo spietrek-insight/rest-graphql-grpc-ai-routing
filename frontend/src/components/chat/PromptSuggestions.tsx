@@ -11,8 +11,8 @@ const prompts = [
   {
     protocol: 'GRAPHQL' as const,
     title: 'Connect the story',
-    text: 'Who flew the Millennium Falcon in A New Hope?',
-    detail: 'Meet the Falcon’s pilots and cast.',
+    text: 'Which starships appear in A New Hope, and who flew them?',
+    detail: 'Ships and their pilots. One query, only what you ask for.',
     icon: Braces,
   },
   {

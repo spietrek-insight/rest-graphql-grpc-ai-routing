@@ -122,7 +122,31 @@ describe('presentational components', () => {
     );
     expect(screen.getByText('LIVE')).toBeInTheDocument();
     expect(screen.getByText('1 snapshots received')).toBeInTheDocument();
+    rerender(
+      <InsightPanel
+        insight={{
+          ...insight,
+          exchange: {
+            ...insight.exchange,
+            operation: 'query ShipsInFilm',
+            responseBytes: 180,
+            comparison: {
+              calls: ['GET /api/catalog/films/1', 'GET /api/catalog/starships/film:1'],
+              responseBytes: 9400,
+              durationMs: 4,
+            },
+          },
+        }}
+        decision={null}
+        snapshots={[]}
+        busy={false}
+      />,
+    );
+    expect(screen.getByText('SAME DATA OVER REST')).toBeInTheDocument();
+    expect(screen.getByText('GET /api/catalog/starships/film:1')).toBeInTheDocument();
+    expect(screen.getByText(/requests · 9,400 B/)).toBeInTheDocument();
     rerender(<InsightPanel insight={insight} decision={null} snapshots={[]} busy={false} />);
+    expect(screen.queryByText('SAME DATA OVER REST')).not.toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: 'response' }));
     expect(screen.getByText(/Millennium Falcon/)).toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: 'Decision' }));
