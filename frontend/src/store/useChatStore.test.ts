@@ -11,11 +11,14 @@ it('owns ephemeral conversation, protocol and session state independently', () =
   s.setDecision(insight.decision);
   s.selectInsight(insight);
   s.addSnapshot({ sequence: 1 });
+  s.addSnapshot({ sequence: 2 }, { sequence: 2, bytes: 120, elapsedMs: 2000 });
   expect(useChatStore.getState().messages).toHaveLength(1);
-  expect(useChatStore.getState().snapshots).toHaveLength(1);
+  expect(useChatStore.getState().snapshots).toHaveLength(2);
+  expect(useChatStore.getState().wire).toEqual([{ sequence: 2, bytes: 120, elapsedMs: 2000 }]);
   s.setBusy(true);
   expect(useChatStore.getState().error).toBeNull();
   expect(useChatStore.getState().snapshots).toEqual([]);
+  expect(useChatStore.getState().wire).toEqual([]);
   s.setBusy(false);
   s.reset();
   expect(useChatStore.getState()).toMatchObject({

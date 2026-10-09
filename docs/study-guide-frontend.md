@@ -154,7 +154,7 @@ sequenceDiagram
 | Event | What the page does |
 |---|---|
 | `decision` | Stores the decision so the insight panel can highlight the chosen protocol while the call is still running. |
-| `snapshot` | Adds the snapshot to the live list. Flight snapshots create or update the assistant message with a streaming `FlightCard`. |
+| `snapshot` | Adds the snapshot and its wire `meta` to the live lists. Flight snapshots create or update the assistant message with a streaming `FlightCard`. |
 | `result` | Writes the final assistant message with its answer and insight, and selects that insight in the panel. |
 | `error` | Shows the message in the error banner with a Retry button. |
 
@@ -162,7 +162,7 @@ sequenceDiagram
 
 | Slice | State | Used for |
 |---|---|---|
-| Conversation | `messages`, `busy`, `error`, `snapshots` | The thread, the running indicator, the error banner and live gRPC updates. |
+| Conversation | `messages`, `busy`, `error`, `snapshots`, `wire` | The thread, the running indicator, the error banner, live gRPC updates and each update's size and arrival time. |
 | Protocol | `override`, `decision`, `selectedInsight` | The override selector, the in-flight decision and the insight shown in the panel. |
 | Session | `sessionId`, `reset()` | Guarding against stale events and starting a new conversation. |
 
@@ -180,7 +180,11 @@ sequenceDiagram
 | `insight.exchange.operation` | The operation line, for example `GET /api/catalog/films/1` or `query FilmShipsCrew`. |
 | `insight.exchange.responseBytes`, `durationMs` | Response body and protocol time metrics. |
 | `insight.exchange.comparison` | The SAME DATA OVER REST card: request counts, byte totals and the REST calls (GraphQL only). |
+| `insight.exchange.stream` and snapshot `meta` | The gRPC MESSAGES timeline: one row per Protobuf message with arrival time, size and what changed. Expanding a row shows its decoded JSON. It fills live while streaming and is rebuilt from the exchange afterwards. |
 | `insight.timings` | Routing time and total server time metrics. |
+
+> [!TIP]
+> Browser DevTools cannot show the gRPC messages because the browser never speaks gRPC; the backend calls its own gRPC service and forwards each message as an NDJSON line. The gRPC MESSAGES timeline is the in-app view. For a view outside the app, `grpcurl -plaintext -d '{"target":"ship:5"}' localhost:9090 catalog.StarshipTracker/Watch` streams the same messages, since the server has reflection enabled.
 
 > [!TIP]
 > The REST comparison is measured on the server with real REST calls, not estimated in the browser. For "Which starships appear in A New Hope, and who flew them?" it shows one GraphQL request of about 545 bytes against two REST requests of about 5,400 bytes.

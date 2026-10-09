@@ -8,8 +8,76 @@ import { Sidebar } from './Sidebar';
 import { InsightPanel } from './InsightPanel';
 import { CatalogGuide } from './CatalogGuide';
 import { Button } from './ui/button';
-import { insight, providers } from '@/test/fixtures';
+import { flightSnapshot, insight, providers } from '@/test/fixtures';
 describe('presentational components', () => {
+  it('lists each gRPC message with its size, timing and change, live and after completion', async () => {
+    const user = userEvent.setup();
+    const frame = (sequence: number, location: string, pilot: string, phase = 'Cruise') => ({
+      sequence,
+      flight: {
+        ...flightSnapshot.flight!,
+        location,
+        phase,
+        pilot: { id: pilot, name: pilot },
+        event: `event ${sequence}`,
+      },
+    });
+    const frames = [
+      frame(1, 'Mos Eisley', 'Han Solo'),
+      frame(2, 'Tatooine orbit', 'Han Solo'),
+      frame(3, 'Tatooine orbit', 'Chewbacca'),
+      frame(4, 'Tatooine orbit', 'Chewbacca'),
+    ];
+    const stream = frames.map((f, i) => ({
+      sequence: f.sequence,
+      bytes: i ? 120 : 900,
+      elapsedMs: i * 2000,
+    }));
+    const decision = { ...insight.decision, protocol: 'GRPC' as const };
+    const { rerender } = render(
+      <InsightPanel
+        insight={null}
+        decision={decision}
+        snapshots={frames.slice(0, 2)}
+        wire={stream.slice(0, 2)}
+        busy
+      />,
+    );
+    expect(screen.getByText(/2 received so far · 1,020 B/)).toBeInTheDocument();
+    rerender(
+      <InsightPanel
+        insight={{
+          ...insight,
+          decision,
+          exchange: { ...insight.exchange, response: frames, responseBytes: 1260, stream },
+        }}
+        decision={null}
+        snapshots={[]}
+        busy={false}
+      />,
+    );
+    expect(screen.getByText(/4 received · 1,260 B/)).toBeInTheDocument();
+    expect(screen.getByText('Ship record and flight start · Mos Eisley')).toBeInTheDocument();
+    expect(screen.getByText('Tatooine orbit')).toBeInTheDocument();
+    expect(screen.getByText('pilot → Chewbacca')).toBeInTheDocument();
+    expect(screen.getByText('event 4')).toBeInTheDocument();
+    expect(screen.getByText('+6.0 s')).toBeInTheDocument();
+    await user.click(screen.getByText('#2'));
+    expect(screen.getAllByText(/"location": "Tatooine orbit"/).length).toBeGreaterThan(0);
+    rerender(
+      <InsightPanel
+        insight={{
+          ...insight,
+          exchange: { ...insight.exchange, response: [{ sequence: 1 }], stream: [stream[0]] },
+        }}
+        decision={null}
+        snapshots={[]}
+        busy={false}
+      />,
+    );
+    expect(screen.getByText('Catalog snapshot')).toBeInTheDocument();
+  });
+
   it('handles input, Enter, Shift+Enter, submit, stop and override callbacks', async () => {
     const props = {
       value: 'hello',

@@ -70,7 +70,8 @@ public class ProtocolGateway {
                 reply.body(),
                 durationMs,
                 reply.bytes(),
-                restEquivalent(base, op.restEquivalent(decision.target())));
+                restEquivalent(base, op.restEquivalent(decision.target())),
+                null);
     }
 
     // Real calls, measured separately, so the comparison is evidence rather than a claim.
@@ -94,6 +95,8 @@ public class ProtocolGateway {
                                         .withDeadlineAfter(115, TimeUnit.SECONDS)
                                         .watch(request);
                         int responseBytes = 0;
+                        var stream = new ArrayList<StreamMessage>();
+                        long streamStart = System.nanoTime();
                         while (snapshots.hasNext()) {
                             if (Thread.currentThread().isInterrupted())
                                 throw new InterruptedException();
@@ -104,8 +107,14 @@ public class ProtocolGateway {
                                                     .alwaysPrintFieldsWithNoPresence()
                                                     .print(value));
                             responses.add(decoded);
-                            responseBytes += value.getSerializedSize();
-                            events.accept(new Event("snapshot", decoded));
+                            var wire =
+                                    new StreamMessage(
+                                            value.getSequence(),
+                                            value.getSerializedSize(),
+                                            elapsed(streamStart));
+                            stream.add(wire);
+                            responseBytes += wire.bytes();
+                            events.accept(new Event("snapshot", decoded, wire));
                         }
                         if (responses.isEmpty())
                             throw new IllegalStateException("Stream ended without an update");
@@ -116,7 +125,9 @@ public class ProtocolGateway {
                                 mapper.readTree(JsonFormat.printer().print(request)),
                                 responses,
                                 elapsed(start),
-                                responseBytes);
+                                responseBytes,
+                                null,
+                                List.copyOf(stream));
                     });
         } catch (java.io.UncheckedIOException e) {
             throw e;

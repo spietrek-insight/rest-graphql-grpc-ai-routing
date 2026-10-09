@@ -3,7 +3,8 @@ package catalog;
 option java_package = "com.insight.router.proto";
 option java_multiple_files = true;
 service StarshipTracker {
-  // Subscribe once; the server owns the simulated flight timeline.
+  // Subscribe once; the server owns the simulated flight timeline. The first message
+  // carries the ship record; later messages carry only the changing flight state.
   rpc Watch(WatchRequest) returns (stream TrackSnapshot);
   // Each client request produces a snapshot; both directions remain open.
   rpc Track(stream TrackRequest) returns (stream TrackSnapshot);

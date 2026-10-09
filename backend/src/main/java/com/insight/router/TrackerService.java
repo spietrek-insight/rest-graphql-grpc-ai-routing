@@ -41,8 +41,19 @@ public class TrackerService extends StarshipTrackerGrpc.StarshipTrackerImplBase 
                                                 if (response.isCancelled()) return;
                                                 Thread.sleep(20);
                                             }
+                                            // The first message identifies the ship;
+                                            // later flight messages carry only what
+                                            // changes, keeping each message small.
                                             var snapshot =
-                                                    snapshot(request.getTarget(), i + 1)
+                                                    (i == 0 || !simulated
+                                                                    ? snapshot(
+                                                                            request.getTarget(),
+                                                                            i + 1)
+                                                                    : TrackSnapshot.newBuilder()
+                                                                            .setSequence(i + 1)
+                                                                            .setObservedAt(
+                                                                                    Instant.now()
+                                                                                            .toString()))
                                                             .setTotalSnapshots(count);
                                             if (simulated)
                                                 snapshot.setFlight(simulation.frame(i))

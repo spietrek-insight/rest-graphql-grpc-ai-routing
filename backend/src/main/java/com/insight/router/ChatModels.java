@@ -1,5 +1,6 @@
 package com.insight.router;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.List;
@@ -62,7 +63,8 @@ public final class ChatModels {
             JsonNode response,
             long durationMs,
             int responseBytes,
-            Comparison comparison) {
+            Comparison comparison,
+            List<StreamMessage> stream) {
         public Exchange(
                 String operation,
                 String endpoint,
@@ -71,9 +73,21 @@ public final class ChatModels {
                 JsonNode response,
                 long durationMs,
                 int responseBytes) {
-            this(operation, endpoint, encoding, request, response, durationMs, responseBytes, null);
+            this(
+                    operation,
+                    endpoint,
+                    encoding,
+                    request,
+                    response,
+                    durationMs,
+                    responseBytes,
+                    null,
+                    null);
         }
     }
+
+    /** Wire facts for one gRPC stream message: serialized Protobuf size and arrival time. */
+    public record StreamMessage(int sequence, int bytes, long elapsedMs) {}
 
     public record Timings(long routingMs, long totalMs) {}
 
@@ -81,5 +95,10 @@ public final class ChatModels {
 
     public record Result(String answer, Insight insight) {}
 
-    public record Event(String type, Object data) {}
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Event(String type, Object data, StreamMessage meta) {
+        public Event(String type, Object data) {
+            this(type, data, null);
+        }
+    }
 }

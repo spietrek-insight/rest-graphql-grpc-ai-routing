@@ -171,7 +171,11 @@ it('updates one flight card while streaming, preserves stopped state, and ignore
   await userEvent.click(screen.getByText('Track the Millennium Falcon'));
   act(() => {
     emit({ type: 'decision', data: { ...insight.decision, protocol: 'GRPC' } });
-    emit({ type: 'snapshot', data: flightSnapshot });
+    emit({
+      type: 'snapshot',
+      data: flightSnapshot,
+      meta: { sequence: 1, bytes: 412, elapsedMs: 3 },
+    });
     emit({
       type: 'snapshot',
       data: {
@@ -182,6 +186,8 @@ it('updates one flight card while streaming, preserves stopped state, and ignore
     });
   });
   expect(screen.getByText('Tatooine orbit')).toBeInTheDocument();
+  // Live gRPC timeline in the inspector, from the snapshot event's wire metadata.
+  expect(screen.getByText(/1 received so far · 412 B/)).toBeInTheDocument();
   expect(useChatStore.getState().messages.filter((m) => m.role === 'assistant')).toHaveLength(1);
   expect(sendChat).toHaveBeenCalledOnce();
   await userEvent.click(screen.getByRole('button', { name: 'Stop response' }));

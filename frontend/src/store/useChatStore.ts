@@ -1,15 +1,23 @@
 import { create, type StateCreator } from 'zustand';
-import type { ChatMessage, Decision, Insight, Override, TrackSnapshot } from '@/types';
+import type {
+  ChatMessage,
+  Decision,
+  Insight,
+  Override,
+  StreamMessage,
+  TrackSnapshot,
+} from '@/types';
 interface ConversationSlice {
   messages: ChatMessage[];
   busy: boolean;
   error: string | null;
   snapshots: TrackSnapshot[];
+  wire: StreamMessage[];
   append: (message: ChatMessage) => void;
   setBusy: (busy: boolean) => void;
   upsert: (message: ChatMessage) => void;
   setError: (error: string | null) => void;
-  addSnapshot: (value: TrackSnapshot) => void;
+  addSnapshot: (value: TrackSnapshot, meta?: StreamMessage) => void;
 }
 interface ProtocolSlice {
   override: Override;
@@ -29,6 +37,7 @@ const conversationSlice: StateCreator<ChatState, [], [], ConversationSlice> = (s
   busy: false,
   error: null,
   snapshots: [],
+  wire: [],
   append: (message) => set((s) => ({ messages: [...s.messages, message] })),
   upsert: (message) =>
     set((s) => ({
@@ -36,9 +45,10 @@ const conversationSlice: StateCreator<ChatState, [], [], ConversationSlice> = (s
         ? s.messages.map((m) => (m.id === message.id ? message : m))
         : [...s.messages, message],
     })),
-  setBusy: (busy) => set({ busy, ...(busy ? { snapshots: [], error: null } : {}) }),
+  setBusy: (busy) => set({ busy, ...(busy ? { snapshots: [], wire: [], error: null } : {}) }),
   setError: (error) => set({ error }),
-  addSnapshot: (value) => set((s) => ({ snapshots: [...s.snapshots, value] })),
+  addSnapshot: (value, meta) =>
+    set((s) => ({ snapshots: [...s.snapshots, value], wire: meta ? [...s.wire, meta] : s.wire })),
 });
 const protocolSlice: StateCreator<ChatState, [], [], ProtocolSlice> = (set) => ({
   override: 'AUTO',
@@ -57,6 +67,7 @@ const sessionSlice: StateCreator<ChatState, [], [], SessionSlice> = (set) => ({
       busy: false,
       error: null,
       snapshots: [],
+      wire: [],
       override: 'AUTO',
       decision: null,
       selectedInsight: null,

@@ -963,6 +963,60 @@ textarea {
 .operation svg {
   flex-shrink: 0;
 }
+.grpc-timeline {
+  margin: 4px 0 15px;
+}
+.grpc-timeline > .section-kicker {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.grpc-timeline > .section-kicker span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.grpc-timeline ol {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #e8e3f0;
+  border-radius: 8px;
+}
+.grpc-timeline li + li {
+  border-top: 1px solid #efebf5;
+}
+.grpc-timeline summary {
+  display: grid;
+  grid-template-columns: 30px 52px 58px 1fr;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.grpc-timeline summary:hover {
+  background: #f4f2f9;
+}
+.grpc-seq,
+.grpc-bytes {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+.grpc-change {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.grpc-timeline .payload {
+  margin: 0 10px 8px;
+  max-height: 200px;
+}
+.grpc-timeline > p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+}
 .rest-comparison {
   margin-bottom: 15px;
 }

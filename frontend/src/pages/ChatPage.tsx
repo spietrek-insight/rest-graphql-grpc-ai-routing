@@ -84,7 +84,7 @@ export function ChatPage() {
           if (abort.signal.aborted || useChatStore.getState().sessionId !== session) return;
           if (event.type === 'decision') state.setDecision(event.data);
           if (event.type === 'snapshot') {
-            state.addSnapshot(event.data);
+            state.addSnapshot(event.data, event.meta);
             if (event.data.flight) {
               flightSnapshots.push(event.data);
               state.upsert({
@@ -277,6 +277,7 @@ export function ChatPage() {
           insight={state.selectedInsight}
           decision={state.decision}
           snapshots={state.snapshots}
+          wire={state.wire}
           busy={state.busy}
         />
       )}

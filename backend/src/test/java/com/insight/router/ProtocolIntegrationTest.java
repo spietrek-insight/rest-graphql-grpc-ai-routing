@@ -45,6 +45,25 @@ class ProtocolIntegrationTest {
                 locations.add(update.path("flight").path("location").asString());
                 pilots.add(update.path("flight").path("pilot").path("name").asString());
             }
+            // Slim stream: only the first message repeats the ship record.
+            assertThat(response.get(0).path("starships")).hasSize(1);
+            for (int i = 1; i < 21; i++) assertThat(response.get(i).path("starships")).isEmpty();
+            var stream = result.insight().exchange().stream();
+            assertThat(stream).hasSize(21);
+            assertThat(stream.stream().mapToInt(StreamMessage::bytes).sum())
+                    .isEqualTo(result.insight().exchange().responseBytes());
+            assertThat(stream.get(1).bytes()).isLessThan(stream.get(0).bytes() / 2);
+            for (int i = 1; i < 21; i++) {
+                assertThat(stream.get(i).sequence()).isEqualTo(i + 1);
+                assertThat(stream.get(i).elapsedMs())
+                        .isGreaterThanOrEqualTo(stream.get(i - 1).elapsedMs());
+            }
+            var wire =
+                    events.stream()
+                            .filter(e -> e.type().equals("snapshot"))
+                            .map(Event::meta)
+                            .toList();
+            assertThat(wire).containsExactlyElementsOf(stream);
             assertThat(locations.size()).isGreaterThan(10);
             assertThat(pilots).containsExactlyInAnyOrder("Han Solo", "Chewbacca");
             assertThat(response.get(7).path("flight").path("shieldsPercent").asInt())
@@ -234,6 +253,8 @@ class ProtocolIntegrationTest {
         var lines = response.body().lines().toList();
         assertThat(lines).hasSize(2);
         assertThat(mapper.readTree(lines.get(0)).path("type").asString()).isEqualTo("decision");
+        // Wire metadata is only sent on gRPC snapshot events.
+        assertThat(mapper.readTree(lines.get(0)).has("meta")).isFalse();
         assertThat(mapper.readTree(lines.get(1)).path("data").path("answer").asString())
                 .contains("Millennium Falcon");
     }

@@ -159,7 +159,7 @@ sequenceDiagram
 | Event type | When it is sent | Payload |
 |---|---|---|
 | `decision` | As soon as the router decides | The `Decision`: protocol, operation, target, source, reason and the raw classification. |
-| `snapshot` | Once per gRPC stream message (gRPC only) | One decoded `TrackSnapshot`, including flight state when simulated. |
+| `snapshot` | Once per gRPC stream message (gRPC only) | One decoded `TrackSnapshot`, including flight state when simulated, plus `meta`: the message's sequence, serialized Protobuf bytes and arrival time since the stream opened. |
 | `result` | When the answer is ready | The answer text plus the `Insight`: decision, exchange and timings. |
 | `error` | When anything fails | A user-facing message. Provider configuration errors pass through; other failures use a generic message. |
 
@@ -232,7 +232,7 @@ erDiagram
 
 **GraphQL.** The gateway posts the operation's fixed query with one variable, `target`. If the response contains `errors`, the turn fails. After the GraphQL call it makes the operation's equivalent REST calls, which are real requests to real resources, and records their paths, total response bytes and duration as the `comparison`. The GraphQL protocol time excludes the comparison calls.
 
-**gRPC.** The gateway opens the `tracker` channel and calls `Watch` with the target. For the Millennium Falcon the server streams 21 simulated flight frames, paced by `DEMO_FLIGHT_INTERVAL_MS` (2,000 ms by default, about 40 seconds). Any other target returns one catalog snapshot. Each message is decoded to JSON and sent to the browser as a `snapshot` event the moment it arrives.
+**gRPC.** The gateway opens the `tracker` channel and calls `Watch` with the target. For the Millennium Falcon the server streams 21 simulated flight frames, paced by `DEMO_FLIGHT_INTERVAL_MS` (2,000 ms by default, about 40 seconds). Only the first message carries the ship record; messages 2 to 21 carry just the changing flight state, which cut the stream from about 20,300 to about 7,100 bytes. Any other target returns one catalog snapshot. Each message is decoded to JSON and sent to the browser as a `snapshot` event, with its size and arrival time, the moment it arrives. The same per-message facts are kept in `exchange.stream` for the inspector's gRPC messages timeline.
 
 ```mermaid
 sequenceDiagram
@@ -264,6 +264,7 @@ sequenceDiagram
 | `exchange.request` / `exchange.response` | `ProtocolGateway` | The payloads captured at invocation time. gRPC messages are decoded through Protobuf `JsonFormat`. |
 | `exchange.responseBytes` | `ProtocolGateway` | HTTP response body bytes, or serialized Protobuf message bytes. Framing and headers are excluded. |
 | `exchange.comparison` | `ProtocolGateway` | GraphQL only: REST calls, total REST body bytes and their duration. |
+| `exchange.stream` | `ProtocolGateway` | gRPC only: one entry per stream message with sequence, serialized bytes and arrival time. |
 | `timings.routingMs` | `ChatService` | Time spent in the router. |
 | `exchange.durationMs` | `ProtocolGateway` | Time spent in the protocol call. |
 | `timings.totalMs` | `ChatService` | Total server time before the result is written. |

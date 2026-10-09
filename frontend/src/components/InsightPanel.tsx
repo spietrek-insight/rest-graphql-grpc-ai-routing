@@ -10,7 +10,7 @@ import {
   Network,
   ScanLine,
 } from 'lucide-react';
-import type { Decision, Insight, RestComparison } from '@/types';
+import type { Decision, Insight, RestComparison, StreamMessage, TrackSnapshot } from '@/types';
 import { ProtocolBadge } from './ProtocolBadge';
 import { protocolLabel } from '@/lib/protocols';
 import { Button } from './ui/button';
@@ -19,16 +19,19 @@ export function InsightPanel({
   insight,
   decision,
   snapshots,
+  wire = [],
   busy,
 }: {
   insight: Insight | null;
   decision: Decision | null;
   snapshots: unknown[];
+  wire?: StreamMessage[];
   busy: boolean;
 }) {
   const [tab, setTab] = useState<'request' | 'response' | 'classification'>('request');
   const [copied, setCopied] = useState(false);
   const active = insight?.decision ?? decision;
+  const messages = streamMessages(insight, snapshots, wire);
   const payload = insight
     ? tab === 'classification'
       ? insight.decision.classification
@@ -145,6 +148,7 @@ export function InsightPanel({
                 )}
               </>
             )}
+            {messages.length > 0 && <GrpcTimeline messages={messages} live={!insight} />}
             <div className="payload-tabs" role="tablist" aria-label="Captured traffic">
               {(['request', 'response', 'classification'] as const).map((t) => (
                 <button
@@ -244,5 +248,66 @@ function RestComparisonCard({
       </ul>
       <p>Measured on the server with real REST calls. Response bodies only.</p>
     </div>
+  );
+}
+
+interface TimelineEntry {
+  wire: StreamMessage;
+  snapshot: TrackSnapshot;
+}
+
+// Live entries pair store snapshots with their wire facts; finished answers use the exchange.
+function streamMessages(
+  insight: Insight | null,
+  snapshots: unknown[],
+  wire: StreamMessage[],
+): TimelineEntry[] {
+  const stream = insight ? insight.exchange.stream : wire;
+  const decoded = (insight ? insight.exchange.response : snapshots) as TrackSnapshot[];
+  if (!stream?.length || !Array.isArray(decoded)) return [];
+  return stream.map((w, i) => ({ wire: w, snapshot: decoded[i] ?? { sequence: w.sequence } }));
+}
+
+function describe(entry: TimelineEntry, previous?: TimelineEntry) {
+  const flight = entry.snapshot.flight;
+  if (!flight) return 'Catalog snapshot';
+  if (!previous?.snapshot.flight) return `Ship record and flight start · ${flight.location}`;
+  const before = previous.snapshot.flight;
+  const changes: string[] = [];
+  if (flight.location !== before.location) changes.push(flight.location);
+  if (flight.pilot.name !== before.pilot.name) changes.push(`pilot → ${flight.pilot.name}`);
+  if (flight.phase !== before.phase) changes.push(flight.phase);
+  return changes.length ? changes.join(' · ') : flight.event;
+}
+
+function GrpcTimeline({ messages, live }: { messages: TimelineEntry[]; live: boolean }) {
+  const total = messages.reduce((sum, m) => sum + m.wire.bytes, 0);
+  return (
+    <section className="grpc-timeline" aria-label="gRPC messages">
+      <div className="section-kicker">
+        gRPC MESSAGES
+        <span>
+          {messages.length} {live ? 'received so far' : 'received'} · {total.toLocaleString()} B
+        </span>
+      </div>
+      <ol>
+        {messages.map((m, i) => (
+          <li key={m.wire.sequence}>
+            <details>
+              <summary>
+                <span className="grpc-seq">#{m.wire.sequence}</span>
+                <span className="grpc-time">+{(m.wire.elapsedMs / 1000).toFixed(1)} s</span>
+                <span className="grpc-bytes">{m.wire.bytes.toLocaleString()} B</span>
+                <span className="grpc-change">{describe(m, messages[i - 1])}</span>
+              </summary>
+              <pre className="payload">
+                <code>{JSON.stringify(m.snapshot, null, 2)}</code>
+              </pre>
+            </details>
+          </li>
+        ))}
+      </ol>
+      <p>Each row is one Protobuf message on the HTTP/2 stream. Sizes are serialized bytes.</p>
+    </section>
   );
 }

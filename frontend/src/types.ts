@@ -24,6 +24,13 @@ export interface Exchange {
   durationMs: number;
   responseBytes: number;
   comparison?: RestComparison | null;
+  stream?: StreamMessage[] | null;
+}
+/** Wire facts for one gRPC stream message: serialized Protobuf size and arrival time. */
+export interface StreamMessage {
+  sequence: number;
+  bytes: number;
+  elapsedMs: number;
 }
 /** The same data fetched over REST, measured by the backend for comparison. */
 export interface RestComparison {
@@ -82,6 +89,6 @@ export interface Status {
 }
 export type ChatEvent =
   | { type: 'decision'; data: Decision }
-  | { type: 'snapshot'; data: TrackSnapshot }
+  | { type: 'snapshot'; data: TrackSnapshot; meta?: StreamMessage }
   | { type: 'result'; data: { answer: string; insight: Insight } }
   | { type: 'error'; data: { message: string } };
