@@ -37,6 +37,22 @@ class OperationTest {
     }
 
     @Test
+    void broadTargetsAreNotStructuralCorrectionsAndMalformedTargetsNeverCrash() {
+        // A film operation cannot invent one film out of "all", so there is no correction to make.
+        assertThat(Operation.FILM_SHIPS_CREW.correct("all")).isNull();
+        assertThat(Operation.SHIP_CREW.correct("all")).isNull();
+        assertThat(Operation.FILM_SHIPS_CREW.correct("film:1")).isEqualTo("film:1");
+        assertThat(Operation.FILM_SHIPS_CREW.correct("crew:5:1")).isEqualTo("film:1");
+        assertThat(Operation.COMPARE_STARSHIPS.correct("all")).isEqualTo("all");
+        // Structural corrections index into the target, so a malformed one is rejected, not thrown.
+        assertThat(Operation.FILM_SHIPS_CREW.correct("crew:5")).isNull();
+        assertThat(Operation.SHIP_CREW.correct("ship:5:1")).isNull();
+        assertThatThrownBy(() -> Operation.FILM_SHIPS_CREW.normalize("all"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not fit FILM_SHIPS_CREW");
+    }
+
+    @Test
     void presenterOverridesMapToOneOperationPerProtocolAndTarget() {
         assertThat(Operation.forOverride(Protocol.REST, "crew:5:1", true))
                 .isEqualTo(Operation.CREW_RECORDS);

@@ -4,6 +4,7 @@ import static com.insight.router.ChatModels.*;
 
 import java.util.*;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 @Service
@@ -232,7 +233,7 @@ public class ModelClassifier implements IntentClassifier {
                                         "type",
                                         "choice",
                                         "instructions",
-                                        "Which catalog target does the latest question refer to? Crew targets are only for who flew or piloted a starship. Resolve the target from the latest question; use history only for references such as it or that ship.",
+                                        "Which catalog target does the latest question refer to? Name the single ship, film or character the question is about. Crew targets are only for who flew or piloted a starship. Use all only for a question about the whole catalog, such as comparing every ship, and never when the question names a ship, film or character. Resolve the target from the latest question; use history only for references such as it or that ship.",
                                         "criteria",
                                         catalog.targets()));
         var body =
@@ -255,8 +256,33 @@ public class ModelClassifier implements IntentClassifier {
         var operation = Operation.valueOf(answers.path("operation").path("choice").asString());
         return new Decision(
                 operation,
-                operation.normalize(answers.path("target").path("choice").asString()),
+                resolveTarget(operation, answers.path("target")),
                 label + " · " + result.path("model").asString(properties.modelFor(provider)),
                 answers);
+    }
+
+    /**
+     * The Ollama tool schemas offer each operation only the targets it can run. Typed providers
+     * answer the operation and target questions independently, from the whole catalog, so the same
+     * constraint has to be applied to the answer instead of the question: keep a target the
+     * operation offers, correct a structural mismatch such as SHIP_CREW with ship:5, and otherwise
+     * take the highest ranked target the operation does offer. Ranking the router's own
+     * distribution is what it already reports, not a keyword guess, so FILM_SHIPS_CREW with all
+     * routes to the film the router ranked next rather than failing the question.
+     */
+    private String resolveTarget(Operation operation, JsonNode answer) {
+        var choice = answer.path("choice").asString();
+        var corrected = operation.correct(choice);
+        if (corrected != null) return corrected;
+        var probabilities = answer.path("probabilities");
+        String ranked = null;
+        double best = 0;
+        for (var target : catalog.targets().keySet())
+            if (operation.offers(target) && probabilities.path(target).asDouble(0) > best) {
+                best = probabilities.path(target).asDouble(0);
+                ranked = target;
+            }
+        // The router ranked nothing this operation can run, so report the mismatch.
+        return ranked != null ? ranked : operation.normalize(choice);
     }
 }

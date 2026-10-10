@@ -338,7 +338,7 @@ Prior turns are passed as data inside the user message, not as assistant example
 
 Jev is a structured decision model, not a text generator. The backend sends a state containing the latest message and the conversation history, and two Choice questions. The `operation` question carries the shared routing rules as its instructions and one criterion per routable operation. The `target` question lists every catalog target. Jev returns a choice for each question with confidence and probabilities, which the inspector shows in the Decision tab.
 
-Because Jev answers the two questions independently, the operation and target can disagree. The backend corrects structural mismatches, for example `SHIP_CREW` with `ship:5` becomes `crew:5:all`, and rejects anything it cannot correct.
+Because Jev answers the two questions independently, the operation and target can disagree. The backend corrects structural mismatches, for example `SHIP_CREW` with `ship:5` becomes `crew:5:all`. A broad target cannot be corrected structurally, so when Jev answers `FILM_SHIPS_CREW` with `all` the backend applies the operation's own target list to the returned distribution and takes the highest ranked target that operation can actually run, for example `film:1`. The Ollama tools apply that same constraint in the request, where each tool offers only its own targets. A decision is rejected only when the router ranked nothing the operation can run.
 
 > [!IMPORTANT]
 > Before the operation contract existed, Jev chose a protocol from three one-sentence descriptions and nothing validated the protocol against the target. That allowed REST plus `crew:5:1`, which is why "Connect the story" could run REST under Jev. Both gaps are now closed.

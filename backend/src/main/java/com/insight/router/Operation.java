@@ -143,15 +143,28 @@ public enum Operation {
      * example SHIP_CREW with ship:5. Anything else is rejected rather than guessed.
      */
     public String normalize(String target) {
+        var corrected = correct(target);
+        if (corrected != null) return corrected;
+        throw new IllegalArgumentException(
+                "The router chose a target that does not fit " + name() + ".");
+    }
+
+    /**
+     * The target this operation can run, or null when the disagreement is not structural. A broad
+     * target such as all cannot be corrected into one film, so callers that still have the router's
+     * own ranking consult it before rejecting the decision.
+     */
+    public String correct(String target) {
         if (accepts(target)) return target;
         var parts = target.split(":");
         var kind = kind(target);
-        if (kind.equals("crew") && kinds.contains("ship")) return "ship:" + parts[1];
-        if (kind.equals("crew") && kinds.contains("film") && !parts[2].equals("all"))
-            return "film:" + parts[2];
-        if (kind.equals("ship") && kinds.contains("crew")) return "crew:" + parts[1] + ":all";
-        throw new IllegalArgumentException(
-                "The router chose a target that does not fit " + name() + ".");
+        if (kind.equals("crew") && parts.length == 3) {
+            if (kinds.contains("ship")) return "ship:" + parts[1];
+            if (kinds.contains("film") && !parts[2].equals("all")) return "film:" + parts[2];
+        }
+        if (kind.equals("ship") && parts.length == 2 && kinds.contains("crew"))
+            return "crew:" + parts[1] + ":all";
+        return null;
     }
 
     public String restPath(String target) {

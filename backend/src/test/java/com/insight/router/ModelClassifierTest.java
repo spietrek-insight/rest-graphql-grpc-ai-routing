@@ -208,6 +208,51 @@ class ModelClassifierTest {
     }
 
     @Test
+    void jevBroadTargetFallsBackToTheRankedTargetTheOperationOffers() throws Exception {
+        // Replays the reported interaction: Jev routes the operation correctly but answers the
+        // independent target question with "all", which FILM_SHIPS_CREW cannot run.
+        var result =
+                mapper.readTree(
+                        """
+                        {"model":"jev-1.13.0","answers":{
+                          "operation":{"choice":"FILM_SHIPS_CREW","confidence":1.0},
+                          "target":{"choice":"all","confidence":0.5,"probabilities":{
+                            "all":0.5,"none":0.0,"film:1":0.34,"film:2":0.0,"ship:7":0.01,
+                            "crew:1:1":0.03,"crew:5:1":0.04,"crew:7:1":0.02}}}}
+                        """);
+        when(http.send(anyString(), eq("http://jev/v1/systemone"), any(), anyMap()))
+                .thenReturn(new JsonHttp.Reply(result, 1));
+        var decision =
+                classifier("jev", "secret")
+                        .classify(
+                                request(
+                                        "Which starships appear in A New Hope, and who flew them?",
+                                        null));
+        assertThat(decision.operation()).isEqualTo(Operation.FILM_SHIPS_CREW);
+        // crew:5:1 outranks film:1, but FILM_SHIPS_CREW only offers film and none targets.
+        assertThat(decision.target()).isEqualTo("film:1");
+        assertThat(decision.protocol()).isEqualTo(Protocol.GRAPHQL);
+        // The inspector still shows what the router actually answered.
+        assertThat(decision.classification().path("target").path("choice").asString())
+                .isEqualTo("all");
+    }
+
+    @Test
+    void jevMismatchIsRejectedWhenNothingTheOperationOffersIsRanked() throws Exception {
+        var result =
+                mapper.readTree(
+                        """
+                        {"answers":{"operation":{"choice":"FILM_SHIPS_CREW"},
+                          "target":{"choice":"all","probabilities":{"all":0.9,"ship:5":0.1}}}}
+                        """);
+        when(http.send(anyString(), eq("http://jev/v1/systemone"), any(), anyMap()))
+                .thenReturn(new JsonHttp.Reply(result, 1));
+        assertThatThrownBy(() -> classifier("jev", "secret").classify(request("hello", null)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not fit FILM_SHIPS_CREW");
+    }
+
+    @Test
     void configurationErrorsAreExplicit() {
         assertThatThrownBy(() -> classifier("jev", "").classify(request("hello", null)))
                 .hasMessageContaining("TYPESAFE_API_KEY");
