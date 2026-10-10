@@ -12,6 +12,9 @@ spring:
   web:
     error:
       include-message: never
+  graphql:
+    graphiql:
+      enabled: true
   grpc:
     server:
       port: ${GRPC_PORT:9090}
@@ -34,6 +37,14 @@ router:
   clm-model: ${CLM_MODEL:}
   typesafe-url: ${TYPESAFE_URL:https://api.typesafe.ai}
   typesafe-key: ${TYPESAFE_API_KEY:}
+logging:
+  level:
+    com.insight.router: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.graphql: DEBUG
+    net.devh.boot.grpc: DEBUG
+    io.grpc: DEBUG
+
 management:
   endpoints:
     web:
