@@ -190,6 +190,8 @@ The direct `./mvnw spring-boot:run` command does not load `.env.native`; use the
 3. Run `npm run rancher:up` (or `npm run docker:up`).
 4. Open http://localhost:3000 and run the Docker smoke checks above. Keep native Ollama running.
 
+For a presentation on Apple Silicon, use this mode to enable the Mac GPU. If installed with Homebrew, `brew services start ollama` keeps Ollama running in the background and starts it at login. Before presenting, wait for the backend's `Local routing model warmed and retained for 30 minutes` log and confirm `ollama ps` shows `100% GPU`. Run smoke tests sequentially before the demo, since they share the model with browser requests. See the [presentation startup steps](docs/rancher-desktop.md#performance-on-apple-silicon).
+
 The Compose Ollama container and model volume remain available, although backend requests now use the host server. To return to the fully containerized model, remove the `OLLAMA_URL` override from `.env` and run the corresponding `up` command again. If the VM cannot reach the host server, see the [Rancher networking guide](docs/rancher-desktop.md).
 
 ## Root command reference
@@ -282,7 +284,10 @@ These verify live routes and record warmup, response timing, and contextual foll
 
 - **REST:** “Tell me about the Millennium Falcon.”
 - **GraphQL:** “Who flew the Millennium Falcon in A New Hope?”
+- **GraphQL ships and cast:** “Which starships appear in A New Hope, and who is in its cast?”
 - **gRPC:** “Track the Millennium Falcon.”
+
+The [v5 presentation](presentation/rest-graphql-grpc-ai-routing-v5.pptx) includes the combined ships-and-cast example, the corrected REST comparison and the streaming inspector.
 
 Auto uses genuine model tool calling with Ollama or typed decisions with Jev or CLM. There is no hidden keyword-based automatic fallback. If a provider is unavailable or returns invalid output, the UI displays an error; choose a presenter override to continue. Overrides bypass the model and use a deliberately simple name matcher for arguments. They apply to one question and then reset to Auto.
 

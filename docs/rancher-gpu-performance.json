@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-10T00:09:57.811Z",
+  "setup": "Rancher Desktop frontend/backend; native macOS Ollama 0.40.2; 100% GPU verified with ollama ps",
+  "base": "http://localhost:3000",
+  "model": "qwen3:4b-instruct-2507-q4_K_M",
+  "warm": true,
+  "method": "Sequential requests after startup prompt warmup; real AI tool calls; no presenter override or application response cache. Streaming timing cancels after the first update; the separate 14-case live smoke run verified all 21 updates.",
+  "samples": [
+    {
+      "message": "tell me about the millinium falcon",
+      "wallMs": 1128,
+      "protocol": "REST",
+      "operation": "STARSHIP",
+      "target": "ship:5",
+      "source": "Ollama · qwen3:4b-instruct-2507-q4_K_M",
+      "routingMs": 1079,
+      "totalMs": 1089,
+      "protocolMs": 7
+    },
+    {
+      "message": "Tell me about the Millennium Falcon",
+      "wallMs": 980,
+      "protocol": "REST",
+      "operation": "STARSHIP",
+      "target": "ship:5",
+      "source": "Ollama · qwen3:4b-instruct-2507-q4_K_M",
+      "routingMs": 961,
+      "totalMs": 968,
+      "protocolMs": 6
+    },
+    {
+      "message": "Tell me about the Millennium Falcon",
+      "wallMs": 848,
+      "protocol": "REST",
+      "operation": "STARSHIP",
+      "target": "ship:5",
+      "source": "Ollama · qwen3:4b-instruct-2507-q4_K_M",
+      "routingMs": 823,
+      "totalMs": 834,
+      "protocolMs": 9
+    }
+  ],
+  "streaming": {
+    "message": "Track the Millennium Falcon",
+    "protocol": "GRPC",
+    "operation": "TRACK",
+    "target": "ship:5",
+    "source": "Ollama · qwen3:4b-instruct-2507-q4_K_M",
+    "firstSnapshotMs": 958,
+    "cancelledAfterFirstSnapshot": true
+  }
+}

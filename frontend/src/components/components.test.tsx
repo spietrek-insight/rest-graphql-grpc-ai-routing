@@ -10,6 +10,71 @@ import { CatalogGuide } from './CatalogGuide';
 import { Button } from './ui/button';
 import { flightSnapshot, insight, providers } from '@/test/fixtures';
 describe('presentational components', () => {
+  it('matches gRPC metadata by sequence when earlier updates lack metadata', () => {
+    const frames = [
+      {
+        ...flightSnapshot,
+        sequence: 1,
+        flight: { ...flightSnapshot.flight!, location: 'Mos Eisley' },
+      },
+      {
+        ...flightSnapshot,
+        sequence: 2,
+        flight: { ...flightSnapshot.flight!, location: 'Tatooine orbit' },
+      },
+      {
+        ...flightSnapshot,
+        sequence: 3,
+        flight: { ...flightSnapshot.flight!, location: 'Hyperspace' },
+      },
+    ];
+    const wire = [
+      { sequence: 2, bytes: 120, elapsedMs: 2000 },
+      { sequence: 3, bytes: 140, elapsedMs: 4000 },
+    ];
+    const { rerender } = render(
+      <InsightPanel
+        insight={null}
+        decision={{ ...insight.decision, protocol: 'GRPC' }}
+        snapshots={frames}
+        wire={wire}
+        busy
+      />,
+    );
+    expect(screen.getByText('Flight update · Tatooine orbit')).toBeInTheDocument();
+    const row = screen.getByText('#2').closest('li')!;
+    expect(row.querySelector('code')?.textContent).toContain('"sequence": 2');
+    expect(row.querySelector('code')?.textContent).toContain('Tatooine orbit');
+    expect(row.querySelector('code')?.textContent).not.toContain('Mos Eisley');
+    rerender(
+      <InsightPanel
+        insight={{ ...insight, exchange: { ...insight.exchange, response: frames, stream: wire } }}
+        decision={null}
+        snapshots={[]}
+        busy={false}
+      />,
+    );
+    expect(screen.getByText('#3').closest('li')!.querySelector('code')?.textContent).toContain(
+      '"sequence": 3',
+    );
+    expect(screen.getByText('#3').closest('li')!.querySelector('code')?.textContent).toContain(
+      'Hyperspace',
+    );
+    rerender(
+      <InsightPanel
+        insight={null}
+        decision={insight.decision}
+        snapshots={frames}
+        wire={[{ sequence: 99, bytes: 50, elapsedMs: 5000 }]}
+        busy
+      />,
+    );
+    expect(screen.getByText('#99').closest('li')!.querySelector('code')?.textContent).toContain(
+      '"sequence": 99',
+    );
+    expect(screen.getByText('Catalog snapshot')).toBeInTheDocument();
+  });
+
   it('lists each gRPC message with its size, timing and change, live and after completion', async () => {
     const user = userEvent.setup();
     const frame = (sequence: number, location: string, pilot: string, phase = 'Cruise') => ({

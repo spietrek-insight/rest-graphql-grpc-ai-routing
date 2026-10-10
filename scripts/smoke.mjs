@@ -8,6 +8,7 @@ const cases = [
   ['Tell me about the Millennium Falcon', 'REST', 'ship:5', 'STARSHIP'],
   ['Who is the cast in A New Hope?', 'REST', 'film:1', 'FILM'],
   ['Which starships appear in A New Hope?', 'GRAPHQL', 'film:1', 'SHIPS_IN_FILM'],
+  ['Which starships appear in A New Hope, and who is in its cast?', 'GRAPHQL', 'film:1', 'FILM_SHIPS_CAST'],
   ['Which starships appear in A New Hope, and who flew them?', 'GRAPHQL', 'film:1', 'FILM_SHIPS_CREW'],
   ['Who flew the Millennium Falcon in A New Hope?', 'GRAPHQL', 'crew:5:1', 'SHIP_CREW'],
   ['Who flew the Millennium Falcon in Return of the Jedi?', 'GRAPHQL', 'crew:5:3', 'SHIP_CREW'],
@@ -18,6 +19,10 @@ const cases = [
   ...(ai
     ? [
         ['Who flew it in A New Hope?', 'GRAPHQL', 'crew:5:1', 'SHIP_CREW', [{ role: 'user', content: 'Tell me about the Millennium Falcon' }]],
+        ['Which films does it appear in and who is in their cast?', 'GRAPHQL', 'ship:5', 'SHIP_FILMS', [
+          { role: 'user', content: 'Tell me about the Millennium Falcon' },
+          { role: 'assistant', content: 'Millennium Falcon — Maximum speed: 1050; length: 34.37 (source units unspecified). Appears in A New Hope, The Empire Strikes Back, Return of the Jedi. Selected cast: Han Solo, Chewbacca.' },
+        ]],
         // Regression: a crew answer in history must not turn a cast question into a crew lookup.
         ['Who is the cast in A New Hope?', 'REST', 'film:1', 'FILM', [
           { role: 'user', content: 'Who flew the Millennium Falcon in A New Hope?' },
@@ -46,6 +51,7 @@ for (const [message, expected, target, operation, history = []] of cases) {
   if (target === 'crew:5:3' && (!result.answer.includes('Lando Calrissian') || !result.answer.includes('Nien Nunb') || result.answer.includes('Han Solo'))) throw new Error('Incorrect Endor crew');
   if (target === 'crew:7:1' && !result.answer.includes('No verified flight-crew records')) throw new Error('Missing crew coverage must be explicit');
   if (operation === 'FILM' && (!result.answer.includes('Leia Organa') || result.answer.includes('pilot'))) throw new Error('Cast answers must list characters, not crew');
+  if (operation === 'FILM_SHIPS_CAST' && (!result.answer.includes('Millennium Falcon') || !result.answer.includes('Leia Organa') || result.answer.includes('(pilot)'))) throw new Error('Expected ships and film cast without crew assignments');
   if (operation === 'FILM_SHIPS_CREW' && !result.answer.includes('Han Solo (pilot)')) throw new Error('Expected ships with their A New Hope crew');
   if (expected === 'GRAPHQL' && !(result.insight.exchange.comparison?.responseBytes > result.insight.exchange.responseBytes)) throw new Error('GraphQL answers must carry a measured REST comparison');
   if (target === 'cast:1' && (!result.answer.includes('Luke Skywalker') || result.answer.includes('Mark Hamill'))) throw new Error('Cast must mean characters');

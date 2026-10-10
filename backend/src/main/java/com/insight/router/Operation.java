@@ -32,6 +32,12 @@ public enum Operation {
             "One GraphQL query selects only the film title and ship names.",
             Set.of("film", "none"),
             "query ShipsInFilm($target: String!) { films(target: $target) { title } starships(target: $target) { name } }"),
+    FILM_SHIPS_CAST(
+            Protocol.GRAPHQL,
+            "Which starships appear in a film and who is in that film's cast of characters. Cast membership does not establish ship crew.",
+            "One GraphQL query selects the film's character cast and ship names together.",
+            Set.of("film", "none"),
+            "query FilmShipsCast($target: String!) { films(target: $target) { title cast { name } } starships(target: $target) { name } }"),
     FILM_SHIPS_CREW(
             Protocol.GRAPHQL,
             "Which starships appear in a film and who flew them in that film.",
@@ -160,10 +166,11 @@ public enum Operation {
     public List<String> restEquivalent(String target) {
         if (target.equals("none")) return List.of("/api/catalog/starships/none");
         return switch (this) {
-            case SHIPS_IN_FILM, FILM_SHIPS_CREW ->
-                    List.of("/api/catalog/films/" + id(target), "/api/catalog/starships/" + target);
+            case SHIPS_IN_FILM, FILM_SHIPS_CAST, FILM_SHIPS_CREW ->
+                    // The ship resource already embeds its films, cast and crew.
+                    List.of("/api/catalog/starships/" + target);
             case SHIP_FILMS, COMPARE_STARSHIPS -> List.of("/api/catalog/starships/" + target);
-            case SHIP_CREW -> List.of("/api/catalog/starships/ship:" + target.split(":")[1]);
+            case SHIP_CREW -> List.of("/api/catalog/starships/" + target);
             case CHARACTER_FILMS ->
                     List.of(
                             "/api/catalog/cast/" + id(target),
@@ -175,6 +182,11 @@ public enum Operation {
 
     /** Deterministic mapping for presenter overrides, which bypass the model. */
     public static Operation forOverride(Protocol protocol, String target, boolean mentionsCrew) {
+        return forOverride(protocol, target, mentionsCrew, false);
+    }
+
+    public static Operation forOverride(
+            Protocol protocol, String target, boolean mentionsCrew, boolean mentionsCast) {
         var kind = kind(target);
         return switch (protocol) {
             case REST ->
@@ -187,7 +199,10 @@ public enum Operation {
             case GRAPHQL ->
                     switch (kind) {
                         case "crew" -> SHIP_CREW;
-                        case "film" -> mentionsCrew ? FILM_SHIPS_CREW : SHIPS_IN_FILM;
+                        case "film" ->
+                                mentionsCrew
+                                        ? FILM_SHIPS_CREW
+                                        : mentionsCast ? FILM_SHIPS_CAST : SHIPS_IN_FILM;
                         case "cast" -> CHARACTER_FILMS;
                         case "ship" -> SHIP_FILMS;
                         default -> COMPARE_STARSHIPS;

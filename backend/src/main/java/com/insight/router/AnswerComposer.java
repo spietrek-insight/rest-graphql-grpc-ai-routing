@@ -25,6 +25,7 @@ public class AnswerComposer {
             case CREW_RECORDS -> crew(response);
             case SHIP_CREW -> crew(data.path("starships"));
             case SHIPS_IN_FILM -> shipsInFilm(data);
+            case FILM_SHIPS_CAST -> filmShipsCast(data);
             case FILM_SHIPS_CREW -> filmShipsCrew(data);
             case SHIP_FILMS -> shipFilms(data.path("starships"));
             case CHARACTER_FILMS -> characterFilms(data);
@@ -121,6 +122,19 @@ public class AnswerComposer {
                 + ": "
                 + String.join(", ", names)
                 + ". These are the ships linked to this film in the demo catalog.";
+    }
+
+    private String filmShipsCast(JsonNode data) {
+        var ships = names(data.path("starships"));
+        var film = data.path("films").path(0);
+        if (ships.isEmpty() && film.isMissingNode()) return NO_MATCH;
+        return "Starships in "
+                + title(data)
+                + ": "
+                + String.join(", ", ships)
+                + ".\n\n"
+                + filmCast(film)
+                + " Film cast membership does not establish who flew these ships.";
     }
 
     private String filmShipsCrew(JsonNode data) {

@@ -38,6 +38,32 @@ class ModelClassifierTest {
     }
 
     @Test
+    void combinedShipsAndCastQuestionWorksWithOverrideAndModel() throws Exception {
+        String question = "Which starships appear in A New Hope, and who is in its cast?";
+        var c = classifier("ollama", "");
+        var manual = c.classify(request(question, Protocol.GRAPHQL));
+        assertThat(manual.operation()).isEqualTo(Operation.FILM_SHIPS_CAST);
+        assertThat(manual.target()).isEqualTo("film:1");
+        verifyNoInteractions(http);
+
+        when(http.send(anyString(), anyString(), any(), anyMap()))
+                .thenReturn(
+                        new JsonHttp.Reply(
+                                mapper.readTree(
+                                        """
+                                        {"message":{"tool_calls":[{"function":{"name":"FILM_SHIPS_CAST","arguments":{"target":"film:1"}}}]}}
+                                        """),
+                                1));
+        assertThat(c.classify(request(question, null)).operation())
+                .isEqualTo(Operation.FILM_SHIPS_CAST);
+        var capture = org.mockito.ArgumentCaptor.forClass(JsonNode.class);
+        verify(http).send(anyString(), anyString(), capture.capture(), anyMap());
+        assertThat(toolTargets(capture.getValue(), "FILM_SHIPS_CAST"))
+                .contains(mapper.valueToTree("film:1"))
+                .doesNotContain(mapper.valueToTree("crew:5:1"));
+    }
+
+    @Test
     void ollamaUsesToolCallRatherThanKeywords() throws Exception {
         var result =
                 mapper.readTree(

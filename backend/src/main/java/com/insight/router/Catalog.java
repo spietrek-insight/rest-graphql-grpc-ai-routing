@@ -260,4 +260,10 @@ public class Catalog {
                 || text.contains("crew")
                 || text.contains("flies");
     }
+
+    /** Presenter-override matching only; automatic routing uses the model's operation. */
+    public boolean mentionsCast(String message) {
+        String text = message.toLowerCase(Locale.ROOT);
+        return text.contains("cast") || text.contains("character");
+    }
 }

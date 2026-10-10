@@ -265,13 +265,20 @@ function streamMessages(
   const stream = insight ? insight.exchange.stream : wire;
   const decoded = (insight ? insight.exchange.response : snapshots) as TrackSnapshot[];
   if (!stream?.length || !Array.isArray(decoded)) return [];
-  return stream.map((w, i) => ({ wire: w, snapshot: decoded[i] ?? { sequence: w.sequence } }));
+  const bySequence = new Map(decoded.map((snapshot) => [snapshot.sequence, snapshot]));
+  return stream.map((w) => ({
+    wire: w,
+    snapshot: bySequence.get(w.sequence) ?? { sequence: w.sequence },
+  }));
 }
 
 function describe(entry: TimelineEntry, previous?: TimelineEntry) {
   const flight = entry.snapshot.flight;
   if (!flight) return 'Catalog snapshot';
-  if (!previous?.snapshot.flight) return `Ship record and flight start · ${flight.location}`;
+  if (!previous?.snapshot.flight)
+    return entry.wire.sequence === 1
+      ? `Ship record and flight start · ${flight.location}`
+      : `Flight update · ${flight.location}`;
   const before = previous.snapshot.flight;
   const changes: string[] = [];
   if (flight.location !== before.location) changes.push(flight.location);

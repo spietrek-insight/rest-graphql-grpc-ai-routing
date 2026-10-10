@@ -133,8 +133,12 @@ class ProtocolIntegrationTest {
         var shipData = ships.insight().exchange().response().path("data");
         assertThat(shipData.path("starships").get(0).propertyNames()).containsExactly("name");
         var comparison = ships.insight().exchange().comparison();
-        assertThat(comparison.calls())
-                .containsExactly("GET /api/catalog/films/1", "GET /api/catalog/starships/film:1");
+        assertThat(comparison.calls()).containsExactly("GET /api/catalog/starships/film:1");
+        // Count precisely the one real body that already contains the film and ship names.
+        assertThat(comparison.responseBytes())
+                .isEqualTo(
+                        jsonHttp.send("GET", url("/api/catalog/starships/film:1"), null, Map.of())
+                                .bytes());
         // The point of the demo: REST returns far more for the same answer.
         assertThat(comparison.responseBytes())
                 .isGreaterThan(ships.insight().exchange().responseBytes() * 5);
@@ -147,9 +151,16 @@ class ProtocolIntegrationTest {
 
         assertThat(run(Operation.SHIP_FILMS, "ship:5").answer())
                 .contains("Millennium Falcon appears in A New Hope", "Leia Organa");
-        assertThat(run(Operation.SHIP_CREW, "crew:5:3").answer())
+        var filteredCrew = run(Operation.SHIP_CREW, "crew:5:3");
+        assertThat(filteredCrew.answer())
                 .contains("Lando Calrissian", "Nien Nunb")
                 .doesNotContain("Han Solo");
+        assertThat(filteredCrew.insight().exchange().comparison().calls())
+                .containsExactly("GET /api/catalog/starships/crew:5:3");
+        assertThat(filteredCrew.insight().exchange().comparison().responseBytes())
+                .isEqualTo(
+                        jsonHttp.send("GET", url("/api/catalog/starships/crew:5:3"), null, Map.of())
+                                .bytes());
         var character = run(Operation.CHARACTER_FILMS, "cast:1");
         assertThat(character.answer())
                 .startsWith("Luke Skywalker appears in")
@@ -160,12 +171,40 @@ class ProtocolIntegrationTest {
         for (var op :
                 List.of(
                         Operation.SHIPS_IN_FILM,
+                        Operation.FILM_SHIPS_CAST,
                         Operation.FILM_SHIPS_CREW,
                         Operation.SHIP_FILMS,
                         Operation.SHIP_CREW,
                         Operation.CHARACTER_FILMS,
                         Operation.COMPARE_STARSHIPS))
             assertThat(run(op, "none").answer()).contains("No matching starships");
+    }
+
+    @Test
+    void combinedFilmShipsAndCastAnswerIncludesBothWithoutCrewOrSpecs() {
+        var result =
+                service.chat(
+                        new Request(
+                                "Which starships appear in A New Hope, and who is in its cast?",
+                                Protocol.GRAPHQL,
+                                List.of()),
+                        e -> {});
+        assertThat(result.insight().decision().operation()).isEqualTo(Operation.FILM_SHIPS_CAST);
+        assertThat(result.answer())
+                .contains(
+                        "Starships in A New Hope:",
+                        "Millennium Falcon",
+                        "Death Star",
+                        "Luke Skywalker",
+                        "Leia Organa",
+                        "Han Solo",
+                        "Selected cast")
+                .doesNotContain("Maximum speed", "(pilot)", "Mark Hamill");
+        var data = result.insight().exchange().response().path("data");
+        assertThat(data.path("starships").get(0).propertyNames()).containsExactly("name");
+        assertThat(data.path("films").get(0).propertyNames()).containsExactly("title", "cast");
+        assertThat(result.insight().exchange().comparison().calls())
+                .containsExactly("GET /api/catalog/starships/film:1");
     }
 
     @Test

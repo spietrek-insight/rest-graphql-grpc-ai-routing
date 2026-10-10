@@ -16,6 +16,9 @@ class OperationTest {
         assertThat(Operation.routableValues()).doesNotContain(Operation.CREW_RECORDS);
         // A cast-only question can no longer fetch ships, specs or crew.
         assertThat(Operation.SHIPS_IN_FILM.query()).doesNotContain("crew", "cast", "maxSpeed");
+        assertThat(Operation.FILM_SHIPS_CAST.query())
+                .contains("cast { name }", "starships(target: $target) { name }")
+                .doesNotContain("crew", "maxSpeed", "length");
     }
 
     @Test
@@ -48,6 +51,8 @@ class OperationTest {
                 .isEqualTo(Operation.FILM_SHIPS_CREW);
         assertThat(Operation.forOverride(Protocol.GRAPHQL, "film:1", false))
                 .isEqualTo(Operation.SHIPS_IN_FILM);
+        assertThat(Operation.forOverride(Protocol.GRAPHQL, "film:1", false, true))
+                .isEqualTo(Operation.FILM_SHIPS_CAST);
         assertThat(Operation.forOverride(Protocol.GRAPHQL, "cast:1", false))
                 .isEqualTo(Operation.CHARACTER_FILMS);
         assertThat(Operation.forOverride(Protocol.GRAPHQL, "ship:5", false))
@@ -61,9 +66,15 @@ class OperationTest {
     @Test
     void restEquivalentsAreRealResourcePaths() {
         assertThat(Operation.FILM_SHIPS_CREW.restEquivalent("film:1"))
-                .containsExactly("/api/catalog/films/1", "/api/catalog/starships/film:1");
+                .containsExactly("/api/catalog/starships/film:1");
+        assertThat(Operation.FILM_SHIPS_CAST.restEquivalent("film:1"))
+                .containsExactly("/api/catalog/starships/film:1");
+        assertThat(Operation.SHIPS_IN_FILM.restEquivalent("film:1"))
+                .containsExactly("/api/catalog/starships/film:1");
         assertThat(Operation.SHIP_CREW.restEquivalent("crew:5:1"))
-                .containsExactly("/api/catalog/starships/ship:5");
+                .containsExactly("/api/catalog/starships/crew:5:1");
+        assertThat(Operation.SHIP_CREW.restEquivalent("crew:5:all"))
+                .containsExactly("/api/catalog/starships/crew:5:all");
         assertThat(Operation.CHARACTER_FILMS.restEquivalent("cast:1")).hasSize(3);
         assertThat(Operation.SHIP_FILMS.restEquivalent("none"))
                 .containsExactly("/api/catalog/starships/none");

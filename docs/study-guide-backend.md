@@ -165,17 +165,18 @@ sequenceDiagram
 
 ### The routing contract: operations
 
-An operation is the unit the router chooses. Each operation fixes its protocol, the kinds of target it accepts and, for GraphQL, the exact selection set. This is how a cast question is guaranteed not to fetch starships, specs or crew.
+An operation is the unit the router chooses. Each operation fixes its protocol, the kinds of target it accepts and, for GraphQL, the exact selection set. A cast-only film question selects the film resource. A combined ships-and-cast question selects both explicitly, without fetching crew or ship specs.
 
 | Operation | Protocol | Targets | Request sent | REST equivalent (GraphQL only) |
 |---|---|---|---|---|
 | `STARSHIP` | REST | `ship:N`, `all`, `none` | `GET /api/catalog/starships/{target}` | — |
 | `FILM` | REST | `film:N` | `GET /api/catalog/films/{id}` (includes cast) | — |
 | `CHARACTER` | REST | `cast:N` | `GET /api/catalog/cast/{id}` | — |
-| `SHIPS_IN_FILM` | GraphQL | `film:N`, `none` | `query ShipsInFilm` (film title, ship names) | film plus starships-in-film, 2 calls |
-| `FILM_SHIPS_CREW` | GraphQL | `film:N`, `none` | `query FilmShipsCrew` (ships and their crew roles) | film plus starships-in-film, 2 calls |
+| `SHIPS_IN_FILM` | GraphQL | `film:N`, `none` | `query ShipsInFilm` (film title, ship names) | starships-in-film (embeds films and cast), 1 call |
+| `FILM_SHIPS_CAST` | GraphQL | `film:N`, `none` | `query FilmShipsCast` (film title, character names, ship names) | starships-in-film (embeds films and cast), 1 call |
+| `FILM_SHIPS_CREW` | GraphQL | `film:N`, `none` | `query FilmShipsCrew` (ships and their crew roles) | starships-in-film (embeds films and cast), 1 call |
 | `SHIP_FILMS` | GraphQL | `ship:N`, `none` | `query ShipFilms` (films and cast names) | one starship, 1 call |
-| `SHIP_CREW` | GraphQL | `crew:SHIP:FILM`, `none` | `query ShipCrew` (crew records only) | one starship, 1 call |
+| `SHIP_CREW` | GraphQL | `crew:SHIP:FILM`, `none` | `query ShipCrew` (crew records only) | starship crew filtered by the same film target, 1 call |
 | `CHARACTER_FILMS` | GraphQL | `cast:N`, `none` | `query CharacterFilms` (character, films, ships) | character, films and starships, 3 calls |
 | `COMPARE_STARSHIPS` | GraphQL | `all`, `none` | `query CompareStarships` (name, speed, length) | all starships, 1 call |
 | `TRACK` | gRPC | `ship:N` (overrides accept any target) | `StarshipTracker/Watch` server stream | — |

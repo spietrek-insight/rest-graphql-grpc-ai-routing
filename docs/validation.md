@@ -1,5 +1,23 @@
 # Validation record — 2026-09-26
 
+## Rancher deployment and response latency (2026-10-09)
+
+- Rebuilt and deployed the reviewed changes to Rancher Desktop. Backend health passed; all 47 backend tests and all 44 frontend tests passed with their formatting, lint, coverage and production build checks. All 11 presenter smoke cases passed through the web proxy.
+- Investigated the reported 54-second opening question. Container Ollama logs recorded a 54.15-second request while CPU prompt warmup and simultaneous verification requests occupied its single inference slot. Startup warmup had exceeded the backend's 120-second upstream timeout. HTTP health was available before model warmup finished.
+- Installed native Ollama 0.40.2 with Homebrew, reused the downloaded model and started its persistent service (`brew services start ollama`). The ignored root `.env` points the Rancher backend at `http://host.docker.internal:11434`; the frontend and backend remain containerized. `ollama ps` confirmed the same Qwen model uses `100% GPU`. The container model volume is preserved.
+- Found and corrected a contextual routing regression during verification: after discussing the Falcon, “Which films does it appear in and who is in their cast?” must select `SHIP_FILMS / ship:5`, rather than `FILM_SHIPS_CAST / film:1`. Added explicit routing guidance and a live regression case; no keyword routing or application response cache was added.
+- All 14 live Ollama smoke cases passed sequentially against the final deployment, including contextual references, film cast versus historical crew, the combined ships-and-cast operation and all 21 changing simulated flight updates.
+- Final warm opening-request wall times through `http://localhost:3000`: **1,128 ms**, **980 ms**, **848 ms**. The first used the reported spelling “tell me about the millinium falcon.” All selected real Ollama `STARSHIP / ship:5` decisions. The first gRPC update arrived in **958 ms**; that timing probe then cancelled, while the separate smoke run verified the full 40-second flight. These are local sequential observations, not a load test or a cold-start guarantee. See [raw timings](rancher-gpu-performance.json).
+- The browser verified Auto/Ollama returns the Falcon answer and protocol rationale in about 1.3 seconds. Updated the run guide with GPU setup, startup warmup and sequential pre-demo verification steps. All verification processes completed; the app and native Ollama service remain running.
+
+## Review corrections (2026-10-09)
+
+- Added the `FILM_SHIPS_CAST` operation and regression coverage for the combined ships-and-character-cast question. Cast-only and historical crew operations remain separate.
+- Film comparisons measure one REST call to the existing nested starship resource. Historical crew comparisons use the same ship/film target as GraphQL. Integration tests verify the measured byte counts against those actual response bodies.
+- The gRPC inspector pairs snapshot payloads and optional metadata by sequence, including when an earlier update lacks metadata. A later first visible row is labeled as a flight update rather than the opening message.
+- Backend: 47 tests, formatting and packaging passed using a temporary JDK 25. Frontend: 44 tests, lint, formatting, coverage gates and production build passed. All 11 presenter smoke cases passed against a temporary native backend, including the 21-message gRPC flight. Subsequent deployed live-model verification is recorded above.
+- The v5 deck preserves 27 slides and the existing PowerPoint comments. Updated the GraphQL example, REST comparison, streaming inspection guidance and operation-based routing appendix. All slides were rendered, and changed slides were checked for layout and readability.
+
 ## Simulated flight streaming (2026-10-04)
 
 - Backend: 40 tests passed, including per-event servlet flushing, real server-streaming transport, 21 ordered changing updates, deterministic replay, unsupported targets, historical crew isolation, pacing cancellation and retained bidirectional compatibility. Formatting and production build passed.

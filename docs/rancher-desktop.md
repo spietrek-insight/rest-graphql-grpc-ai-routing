@@ -4,6 +4,8 @@ For first-time installation and complete native, Docker, and hybrid walkthroughs
 
 Start Rancher Desktop and use its **dockerd (moby)** container engine. Kubernetes is not required. Run the commands below from the repository root.
 
+On an Apple Silicon Mac, follow [Performance on Apple Silicon](#performance-on-apple-silicon) before a presentation to use native GPU inference with the containerized app. The default setup below runs Ollama on the VM's CPU.
+
 ## Start or update
 
 ```sh
@@ -43,7 +45,14 @@ docker --context rancher-desktop compose logs --tail=100 backend frontend ollama
 
 The fully containerized model uses CPU inference inside Rancher Desktop's Linux VM. The earlier 1–2 second measurements were made with native Ollama using the Mac GPU and are not a container performance guarantee. More VM CPU and memory can help CPU inference; native Ollama is the faster option on this Mac.
 
-To keep the frontend/backend in Rancher Desktop while using native Ollama, install and start Ollama for macOS, then:
+For presentations on Apple Silicon, use native Ollama while keeping the frontend/backend in Rancher Desktop. Install it once and start a background service that also starts at login:
+
+```sh
+npm run ollama:install
+brew services start ollama
+```
+
+Download the same model used by the container setup:
 
 ```sh
 ollama pull qwen3:4b-instruct-2507-q4_K_M
@@ -60,6 +69,20 @@ Then recreate only the application services:
 ```sh
 docker --context rancher-desktop compose up -d backend frontend
 ```
+
+Wait for the backend log to report `Local routing model warmed and retained for 30 minutes` before opening the demo to the audience:
+
+```sh
+docker --context rancher-desktop compose logs -f --tail=30 backend
+```
+
+Press Ctrl+C after warmup completes; this only stops following the logs. Confirm GPU use with `ollama ps` (`100% GPU`), then run one sequential check through the web proxy:
+
+```sh
+API_URL=http://localhost:3000 AI_PROVIDER=ollama node scripts/smoke.mjs --ai
+```
+
+Avoid running AI smoke tests or benchmarks while presenting: they submit real model requests and can make audience requests wait. The backend health check confirms HTTP readiness; it does not mean model warmup has finished. After an idle period longer than 30 minutes, the model may need to load again.
 
 Rancher Desktop documents `host.docker.internal` and `host.rancher-desktop.internal` for reaching host services in its [networking FAQ](https://docs.rancherdesktop.io/faq/). Native Ollama must remain running. The container model remains available if you remove `OLLAMA_URL` from `.env` and recreate the backend. This optional host-model configuration is separate from the fully containerized default.
 
