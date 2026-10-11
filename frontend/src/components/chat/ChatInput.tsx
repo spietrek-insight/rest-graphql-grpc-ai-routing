@@ -95,7 +95,7 @@ export function ChatInput({
                   value="GRPC"
                   className="select-grpc"
                   icon={<Radio size={17} />}
-                  description="Stream three catalog snapshots."
+                  description="Stream live starship updates over one subscription."
                 >
                   Force gRPC · next question
                 </SelectItem>
