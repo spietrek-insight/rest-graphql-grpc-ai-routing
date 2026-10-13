@@ -1,8 +1,8 @@
-| **Version**      | 0.4              |
+| **Version**      | 0.5              |
 | ---------------- | ---------------- |
 | **Author**       | Steve Pietrek    |
 | **Created**      | 2026-10-08 20:16 |
-| **Last Updated** | 2026-10-11 22:56 |
+| **Last Updated** | 2026-10-13 08:17 |
 
 # Protocol Studio Presenter and Frontend Study Guide
 
@@ -12,6 +12,15 @@ Most of the audience writes Java. They already know Spring MVC and HTTP well. Th
 
 > **Callout — Reframe**
 > The talk does not crown a winning protocol. It shows how to choose one for each operation. Every answer you give should come back to that idea, especially when someone pushes you to pick a winner.
+
+### What Protocol Studio Is
+
+Protocol Studio is the name of the demo application built for this talk. It is the whole app, not one screen: the React frontend the audience sees, and the Spring Boot backend behind it. The frontend has a chat on the left, where you ask questions in plain language, and the Protocol insight panel on the right, which shows the routing decision and the real request and response for each answer. The backend chooses the protocol, makes the REST, GraphQL or gRPC call, and streams the result back.
+
+The audience sees the name on screen, so the deck introduces it once, in the slide 19 speaker notes ("the demo app we built for this talk"). Everywhere else the slides and notes simply say "the demo." This guide uses the name freely, because it is written for presenters.
+
+> **Callout — Golden Rule**
+> Do not refer to an earlier demo, an earlier version of this talk, or "last year." Most of the audience has not seen them. Present the catalog, the comparison table and the demo as they are today.
 
 ---
 
@@ -68,7 +77,7 @@ Its main weakness is the browser. Browser JavaScript cannot control HTTP/2 frami
 | Four call types, including bidirectional | HTTP/2 required end to end | Check that every proxy and load balancer supports it |
 | Deadlines and cancellation built in | Field numbers are forever | Retire fields with `reserved` instead of reusing them |
 
-The demo's own contract has an example of field-number discipline. `catalog.proto` marks field 5 and the old name `producers` as `reserved`, because the original dataset's producer data was removed. If someone asks how protobuf schemas evolve, point to that line.
+The demo's own contract has an example of field-number discipline. `catalog.proto` marks field 5 and the old name `producers` as `reserved`, because producer data was removed from the dataset. If someone asks how protobuf schemas evolve, point to that line.
 
 ### 1.5 Side-by-Side Comparison
 
@@ -159,16 +168,16 @@ flowchart LR
 
 ### 2.1 Opening: Slides 1 to 5
 
-The opening has two jobs: tell the audience this is a 300-level session, and tell them there is no winner. Keep the Insight slides short. The audience came for protocols.
+The opening has two jobs: tell the audience this is an intermediate session, and tell them there is no winner. Keep the Insight slides short. The audience came for protocols.
 
 #### 2.1.1 Slide 1: Title, "REST vs GraphQL vs gRPC"
 
-The slide shows the title, the subtitle "Choosing the right API protocol for the operation in front of you," a description of the session as an intermediate tour through Protocol Studio, the tagline "Three protocols. One question. The right call." and the three sections: The Protocols, The Demo and The Field.
+The slide shows the title, the subtitle "Choosing the right API protocol for the operation in front of you," a description of the session as an intermediate tour through one working demo app, the tagline "Three protocols. One question. The right call." and the three sections: The Protocols, The Demo and The Field.
 
 | Cue | Script |
 |---|---|
 | Say | "Thank you all for being here. There is a lot on the agenda today, and we do not take your time lightly." |
-| Say | "This is a 300-level session on REST, GraphQL and gRPC. Not a beginner overview, and not a vendor pitch." |
+| Say | "This is an intermediate session on REST, GraphQL and gRPC. Not a beginner overview, and not a vendor pitch." |
 | Point 1 | "We will look at where each protocol fits and where it strains." |
 | Point 2 | "We will show all three running side by side in one application. Real traffic, nothing mocked." |
 | Point 3 | "And we will share what we have seen in the field, with clients who had to make this choice for real." |
@@ -210,22 +219,22 @@ The slide shows Insight's company facts (Fortune 500, founded 1988, headquartere
 
 Spend very little time on this slide. If anyone asks a commercial question, offer to talk after the session.
 
-#### 2.1.4 Slide 4: End-to-End Insight Services for Microsoft Technologies
+#### 2.1.4 Slide 4: End-to-End Insight Services Across Every Cloud
 
-The slide lists six areas of expertise (Modern Workplace, Intelligent Edge, Data and AI, Cybersecurity, Modern Infrastructure and Modern Apps) and four service lines (Consulting, Change and Training, Software and Lifecycle, and Managed Services).
+The slide is vendor-neutral. The subtitle names AWS, Microsoft Azure and Google Cloud. It lists six areas of expertise (Digital Workplace, Intelligent Edge, Data and AI, Cybersecurity, Cloud Infrastructure, and Apps and Integration), each described by capability rather than by product, and four service lines (Consulting, Change and Training, Software and Lifecycle, and Managed Services).
 
 | Cue | Script |
 |---|---|
-| Say | "For Microsoft technologies, our work spans six areas of expertise." |
-| Point 1 | "Modern workplace, intelligent edge and data and AI." |
-| Point 2 | "Cybersecurity, modern infrastructure, and modern applications, which is where the API work in this talk lives." |
+| Say | "Across AWS, Microsoft Azure and Google Cloud, our work spans six areas of expertise." |
+| Point 1 | "Digital workplace, intelligent edge, and data and AI." |
+| Point 2 | "Cybersecurity, cloud infrastructure, and apps and integration, which is where the API work in this talk lives." |
 | Point 3 | "Each area is backed by four service lines: consulting, change and training, software and lifecycle services, and managed services." |
-| Be clear | "Protocol choices like REST, GraphQL and gRPC show up in every one of these areas. That is why they are worth getting right." |
+| Be clear | "We are platform-agnostic: we meet clients on the clouds and stacks they already run. Protocol choices like REST, GraphQL and gRPC show up in every one of these areas, which is why they are worth getting right." |
 | Transition | "With that, here is what we will cover today." |
 
 | Likely Question | Answer |
 |---|---|
-| "Is this a Microsoft-only talk?" | No. The protocols are vendor-neutral, and the demo runs on Java, React and open-source models. This slide only describes where Insight does its work. |
+| "Do you only work with one cloud?" | No. Insight works across AWS, Microsoft Azure and Google Cloud. The protocols in this talk are vendor-neutral too, and the demo runs on Java, React and open-source models. |
 
 #### 2.1.5 Slide 5: Key Expectations and Takeaways (Agenda)
 
@@ -284,7 +293,7 @@ The slide has the eight-row comparison table from Section 1.5.
 | Point 2 | "Contract: optional for REST with OpenAPI, required for GraphQL with its schema, and required for gRPC with the proto file." |
 | Point 3 | "Caching is where REST is strongest. It gets HTTP and CDN caching for free. GraphQL and gRPC have to work harder." |
 | Point 4 | "Streaming and browser support are where gRPC stands out, in both directions: it streams natively, but browsers need gRPC-Web or a bridge." |
-| Be clear | "Two corrections from last year's version of this table: GraphQL does stream, through subscriptions, and gRPC does not run natively in a browser. Our demo bridges it, and we will show you how." |
+| Be clear | "Two common misconceptions: GraphQL does stream, through subscriptions, and gRPC does not run natively in a browser. Our demo bridges it, and we will show you how." |
 | Transition | "To make this concrete, here is the data every example uses." |
 
 | Likely Question | Answer |
@@ -301,11 +310,11 @@ The slide shows 19 starships, 6 films and 18 characters, linked many-to-many. Th
 | Cue | Script |
 |---|---|
 | Say | "One catalog sits behind all three protocols: nineteen starships, six films and eighteen characters." |
-| Say | "The ship values and ship/film links come from the original demo. We added a curated character cast and four verified flight-crew assignments. Cast means characters such as Luke Skywalker and Han Solo." |
+| Say | "The ship values and ship/film links are seeded catalog data. On top of them we curated a character cast and four verified flight-crew assignments. Cast means characters such as Luke Skywalker and Han Solo." |
 | Say | "Ships appear in many films, and characters appear in many films. All three protocols resolve the same immutable seed. There is no database to configure." |
 | Be clear | "A character's film appearance does not establish that they piloted a ship. We store the ship, film, character and crew role explicitly. Crew coverage currently includes the Falcon in A New Hope and the Battle of Endor. Missing evidence produces a coverage-gap answer." |
 | Transition | "With that in place, let's go protocol by protocol." |
-| Background | The historical catalog is shared by all three protocols. A separate, fictional flight script adds changing Falcon telemetry to the Watch stream. Its simulated assignments do not change the sourced film-crew records. |
+| Background | The film catalog is shared by all three protocols. A separate, fictional flight script adds changing Falcon telemetry to the Watch stream. Its simulated assignments do not change the sourced film-crew records. |
 
 | Likely Question | Answer |
 |---|---|
@@ -342,13 +351,13 @@ The slide has two lists. "Where REST shines": addressable resources, native cach
 | "Does the demo use HATEOAS?" | No. The demo uses plain resource URLs. Hypermedia is part of Fielding's original description but uncommon in practice. |
 | "What about sparse fieldsets or JSON:API to fix over-fetching?" | Those approaches work and move REST toward the client-shaped model. Once many screens need custom shapes, you are building part of GraphQL yourself. |
 
-#### 2.3.3 Slide 12: REST in Protocol Studio
+#### 2.3.3 Slide 12: REST in the Demo
 
 The slide shows a request and response: `GET /api/catalog/starships/ship:5`, then `200 OK` with `Cache-Control: max-age=300` and a JSON array holding the Falcon record. Three cards: one route per resource, cacheable by default, picked for simple lookups. Try it: "Tell me about the Millennium Falcon."
 
 | Cue | Script |
 |---|---|
-| Say | "In Protocol Studio, single-resource lookups go to REST." |
+| Say | "In the demo, single-resource lookups go to REST." |
 | Point 1 | "Spring MVC exposes starships, films and character cast as resources. The character endpoint is /api/catalog/cast/{id}." |
 | Point 2 | "Starship reads return Cache-Control with a five-minute maximum age." |
 | Point 3 | "Questions about speed, length or one resource's details route here. Try 'Tell me about Luke Skywalker' for a character lookup." |
@@ -377,7 +386,7 @@ The slide has two lists. "Where GraphQL shines": one SDL schema, field selection
 | "Is GraphQL a good fit for a BFF?" | Yes. A backend-for-frontend is one of its best uses, because each screen selects its own shape from one schema. |
 | "How does the frontend consume GraphQL in this demo?" | It doesn't call GraphQL directly. The browser posts a question to `/api/chat`, and the backend sends the GraphQL query. The UI shows the query and response it captured. Section 3.1 explains why. |
 
-#### 2.3.5 Slide 14: GraphQL in Protocol Studio
+#### 2.3.5 Slide 14: GraphQL in the Demo
 
 The slide shows `POST /graphql` with `query FilmShipsCrew($target: String!)`, selecting `films { id title }` and `starships { name crew { filmId role member { name } } }`, with variables `{ "target": "film:1" }`. Three cards: one request with linked records, measured against REST, and crew, not cast. Try it: "Which starships appear in A New Hope, and who flew them?" This is the exact question the GraphQL starter card sends, so clicking the card on stage matches the slide.
 
@@ -415,7 +424,7 @@ The slide has two lists. "Where gRPC shines": contract-first, Protobuf with HTTP
 | "Why not gRPC-Web in the demo?" | gRPC-Web needs a proxy such as Envoy, and it supports only unary and server streaming. A server-side bridge keeps the demo to one command and lets the backend capture each message for the inspector. |
 | "What does 'field numbers are forever' look like?" | Look at `catalog.proto`: field 5 of `TrackedShip` and the name `producers` are `reserved` after that data was removed. Reusing them would break older clients. |
 
-#### 2.3.7 Slide 16: gRPC in Protocol Studio
+#### 2.3.7 Slide 16: gRPC in the Demo
 
 The slide shows a `catalog.proto` excerpt: `service StarshipTracker { rpc Watch(WatchRequest) returns (stream TrackSnapshot); }` and the `WatchRequest` and `TrackSnapshot` messages. The subtitle reads "one request, 21 updates, about 40 seconds." Three cards: subscribe once, inspectable updates, and bounded and honest. Try it: "Track the Millennium Falcon."
 
@@ -426,7 +435,7 @@ The slide shows a `catalog.proto` excerpt: `service StarshipTracker { rpc Watch(
 | Say | "The browser receives each update through the NDJSON bridge. The backend explicitly flushes the servlet response after every event so updates arrive individually." |
 | Demonstrate | Click **Present flight**. The Falcon departs Tatooine, Chewbacca takes the controls, a debris alert lowers shields, Han retakes the controls, and the ship travels through hyperspace to Yavin 4. The UI keeps the final state and flight log. Stop keeps the last received state, and Replay starts again. |
 | Be clear | This is authored fiction for a repeatable presentation, not canon flight history or live telemetry. The script is separate from documented film-crew records. Only the Falcon has a flight scenario. Other targets return catalog data with an explicit coverage message. Each subscription starts its own timeline. |
-| Background | The older bidirectional `Track` method remains for comparison. Bidirectional streaming is useful when a client must change its request during an open stream, and this guided flight only needs server streaming. The proto on the slide is an excerpt. |
+| Background | The service also defines a bidirectional `Track` method for comparison. Bidirectional streaming is useful when a client must change its request during an open stream, and this guided flight only needs server streaming. The proto on the slide is an excerpt. |
 | Background | Default pacing is 2000 ms for 40 seconds. `DEMO_FLIGHT_INTERVAL_MS=3000` gives 60 seconds, and 5000 gives 100 seconds. Restart the backend after changing it. The gRPC deadline is 115 seconds. Response sizes count serialized Protobuf bytes, not headers or framing. Playback time is not a protocol speed benchmark. |
 | Inspect | Open **gRPC MESSAGES**. Each row shows one message's sequence, serialized Protobuf bytes and arrival time. Expand a row to see its decoded payload. Missing optional metadata cannot shift later rows. Only the first flight message includes the catalog ship record, and later messages carry only the changing flight state. |
 
@@ -465,7 +474,7 @@ The live demo is the riskiest part of the session, and it is also what the audie
 | Cue | Script |
 |---|---|
 | Say | "Section three: the demo, and then two stories from the field." |
-| Transition | "Let me switch over to Protocol Studio." |
+| Transition | "Let me switch over to the demo." |
 
 #### 2.4.2 Slide 19: Demo, "Let's Get Into the Code"
 
@@ -473,7 +482,7 @@ The slide has three demo cards (REST simple lookup, GraphQL relationships and gR
 
 | Cue | Script |
 |---|---|
-| Say | "This is Protocol Studio. Ask a question, see the selected protocol and its explanation, and inspect the real request and response." |
+| Say | "This is Protocol Studio, the demo app we built for this talk. On the left is a chat; on the right, a Protocol insight panel. Ask a question, see the selected protocol and its explanation, and inspect the real request and response." |
 | Do 1 | Ask "Tell me about the Millennium Falcon." Show REST, the cache header and the response size. |
 | Do 2 | Click the GraphQL starter card, "Which starships appear in A New Hope, and who flew them?" Show `query FilmShipsCrew`, target `film:1`, and the answer: the Falcon with Han Solo (pilot) and Chewbacca (co-pilot), and other ships marked as having no verified crew records. Compare one GraphQL request with one REST request. Explain that the REST body includes nested records while GraphQL selects the requested fields. |
 | Do 3 | Ask "Track the Millennium Falcon." Click Present flight and watch location, pilot, shields and flight events update over about forty seconds. Point out the Chewbacca handoff, alert, recovery and arrival. Close the presentation view and inspect one Watch request with twenty-one responses. |
@@ -506,14 +515,14 @@ The starter cards appear only before the first message. If you have already aske
 
 #### 2.4.3 Slide 20: Client Story, Port Terminal Operator
 
-The slide describes a leading U.S. marine terminal operator. The approach covered UX workshops, Figma wireframes, Next.js on Vercel, and Strapi Cloud as a headless CMS. Protocols in play: REST and GraphQL. Results: new pages in hours instead of days, smaller image payloads and better organic search traffic.
+The slide describes a leading U.S. marine terminal operator. The approach covered UX workshops, wireframes refined with stakeholders, a modern web front end on managed cloud hosting, and a SaaS headless CMS. The slide deliberately names no products. Protocols in play: REST and GraphQL. Results: new pages in hours instead of days, smaller image payloads and better organic search traffic.
 
 | Cue | Script |
 |---|---|
 | Say | "Our first client story is a leading U.S. marine terminal operator. They needed a corporate website that was fast, modern, and that marketing could run on its own." |
-| Point 1 | "We started with interactive UX workshops to map user journeys and critical paths, and refined wireframes in Figma alongside stakeholders." |
-| Point 2 | "The site runs on Next.js on Vercel, with Strapi Cloud as a headless CMS. Pages pull content through Strapi's REST and GraphQL APIs." |
-| Point 3 | "Reusable Strapi components let marketing build new pages without IT." |
+| Point 1 | "We started with interactive UX workshops to map user journeys and critical paths, and refined wireframes alongside stakeholders." |
+| Point 2 | "The site is a modern web front end on a managed cloud hosting platform, with a SaaS headless CMS behind it. Pages pull content through the CMS's REST and GraphQL APIs." |
+| Point 3 | "Reusable CMS components let marketing build new pages without IT." |
 | Be clear | "The payoff is operational: new pages in hours instead of days, 45% smaller image payloads, zero-downtime deployments, and better organic search traffic." |
 | Transition | "The second story made a very different choice." |
 
@@ -524,6 +533,7 @@ The slide describes a leading U.S. marine terminal operator. The approach covere
 |---|---|
 | "Which pages used REST and which used GraphQL?" | Stay at the level on the slide: the choice was made page by page. Pages that needed nested content used GraphQL, and simple content reads used REST. Do not add delivery details that aren't confirmed. |
 | "Who is the client?" | We don't name the client. |
+| "Which CMS and hosting platform?" | Keep it generic on stage: a SaaS headless CMS and a managed cloud hosting platform. Naming the products can identify the client. |
 
 #### 2.4.4 Slide 21: Client Story, Global Retail Coffee Manufacturer
 
@@ -582,13 +592,13 @@ The slide lists four items: Architecture, Ollama, Jev, and Trade-offs and guardr
 
 | Cue | Script |
 |---|---|
-| Say | "This appendix explains how Protocol Studio lets a model choose the protocol, without letting it invent the answer." |
+| Say | "This appendix explains how the demo lets a model choose the protocol, without letting it invent the answer." |
 | Point 1 | "The architecture: how a question becomes a protocol call." |
 | Point 2 | "Two ways to make the decision: Ollama tool calling on a small local model, and Jev's structured decisions." |
 | Point 3 | "The trade-offs between the two, and the guardrails that keep it honest." |
 | Transition | "Here is the path a question takes." |
 
-#### 2.6.2 Slide 25: How Protocol Studio Routes a Question
+#### 2.6.2 Slide 25: How the Demo Routes a Question
 
 The slide shows five steps (Ask, Classify, Decide, Execute, Answer) and the banner "The model chooses the route. It never supplies the data."
 
@@ -705,6 +715,11 @@ The deck now follows the code, which is the source of truth. CLM stays in the ap
 | Agenda and appendix divider wording | 5, 24 | "Latency" replaced with "trade-offs" |
 | Repository link | 22 | Placeholder replaced with the real link |
 | GraphiQL enabled on the backend (Chetan) | None | Anyone can run the demo's GraphQL queries by hand at `http://localhost:8080/graphiql` |
+| Session described as intermediate, not 300-level | 1 (slide and notes) | Matches the conference's level for the session |
+| Slide 4 rewritten as vendor-neutral and multi-cloud | 4 | The audience is mostly Java developers, and Insight works across AWS, Azure and Google Cloud |
+| References to an earlier demo or talk removed | 8, 9, 16 (notes), 9 (slide) | Most of the audience never saw an earlier version |
+| "Protocol Studio" named once, "the demo" elsewhere | Header on every slide, 1, 5, 12, 14, 16, 18, 24, 25 | The name is introduced where the app appears on screen (slide 19 notes) |
+| Client story technologies made generic | 20 | Next.js, Vercel, Strapi and Figma replaced by capability descriptions |
 
 One related code change shipped alongside the deck update. The "Force gRPC · next question" option in `ChatInput.tsx` now reads "Stream live starship updates over one subscription." It used to say "Stream three catalog snapshots," which no longer described what forcing gRPC on the Falcon does.
 
